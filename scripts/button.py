@@ -1,5 +1,5 @@
 import pygame as pg
-from settings import *
+# from settings import *
 
 class Button(pg.sprite.Sprite):
     def __init__(self, x, y, W, H, color):

@@ -1,17 +1,20 @@
-from scripts.player import Player
-from scripts.functions import builder, spawn_obj, spawn_team_obj
-from scripts.cell import Cell
-from scripts.wall import Wall
-from scripts.tank import Tank
-from scripts.img_tank import ImgTank
-from scripts.base import Base
-from scripts.button import Button
-from scripts.surface import Surface
-from scripts.selectedcell import Selectedcell
-from scripts.projectile import Projectile
+# from scripts.player import Player
+# from scripts.functions import builder, spawn_obj, spawn_team_obj
+# from scripts import functions
+# from scripts.cell import Cell
+# from scripts.wall import Wall
+# from scripts.tank import Tank
+# from scripts.img_tank import ImgTank
+# from scripts.base import Base
+# from scripts.button import Button
+# from scripts.surface import Surface
+# from scripts.selectedcell import Selectedcell
+# from scripts.projectile import Projectile
+# import maps.sandlot as sandlot
+# import maps.squares as squares
 import pygame as pg
-import maps.sandlot as sandlot
-import maps.squares as squares
+import scripts
+import maps
 from settings import *
 from ttx import *
 
@@ -50,13 +53,14 @@ map_not_builded = True
 menu_not_builded = True
 buttons_flag_game = True
 sel_tank = False
-players_flag = True
+players_flag = True # понормальнее надо назвать
 tank_take = False
 ready_to_spawn_tank = False
 
-win1 = 0
+win1 = 0 # не понятно что это значит
 
-keys = [0] * 100
+keys = [0] * 100 # зачем тебе вручную делать список нажатых клавиш если есть pg.key.get_pressed()
+keys_clicked = [0] * 100
 turn = 0
 n = 2
 player = 0
@@ -65,11 +69,13 @@ all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_ESCAPE, pg.K_q)
 
 while running:
+    # mouse_pos = pg.mouse.get_pos()
     r_m_pos = pg.mouse.get_pos()
     for event in pg.event.get():
-        keys_clicked = [0] * 100
         if event.type == pg.QUIT:
             running = False
+
+        keys_clicked = [0] * 100    
         if event.type == pg.KEYDOWN:
             for i, k in enumerate(all_keys):
                 if event.key == k:
@@ -79,6 +85,7 @@ while running:
             for i, k in enumerate(all_keys):
                 if event.key == k:
                     keys[i] = 0
+
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 keys[32] = 1
@@ -96,9 +103,10 @@ while running:
                 keys[35] = 0
             if event.button == 3:
                 keys[37] = 0
+
         if scene == 'menu':
             if menu_not_builded:
-                b_start = Button(SW/2, SH/2,200, 100, (0,255,255))
+                b_start = scripts.button.Button(SW/2, SH/2,200, 100, (0,255,255))
                 all_buttons_menu.add(b_start)
                 menu_not_builded = False
             screen.fill((255,255,255))
@@ -110,44 +118,47 @@ while running:
 
         elif scene == 'game':
             if map_not_builded:
-                map = squares.map.copy()
-                builder(map, Cell, 0, all_cells)
-                builder(map, Wall, 1, all_walls)
+                map = maps.squares.map.copy()
+                scripts.functions.builder(map, scripts.cell.Cell, 0, all_cells)
+                scripts.functions.builder(map, scripts.wall.Wall, 1, all_walls)
                 map_not_builded = False
 
             if buttons_flag_game:
-                b_turn = Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
-                b_tanks_menu = Button(SW/2, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
+                b_turn = scripts.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
+                b_tanks_menu = scripts.button.Button(SW/2, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
                 all_buttons_game.add(b_turn)
                 all_buttons_game.add(b_tanks_menu)
                 buttons_flag_game = False
 
             if players_flag:
                 for i in range(n):
-                    players.append(Player(i, res0))
+                    players.append(scripts.player.Player(i, res0))
                 player = players[turn]
                 players_flag = False
 
+            # это что вообще блин
             m_m_pos = (player.place[0] + r_m_pos[0], player.place[1] + r_m_pos[1])
             cell_m_pos = (int(m_m_pos[0] // lencell) , int(m_m_pos[1] // lencell))
 
-            if  player.base == 0:
+            if player.base == 0:
                 if keys_clicked[32] == 1:
                     player.base = pg.sprite.Group()
-                    spawn_team_obj(map, Base, 3, all_bases, player.base, cell_m_pos, player.n)
+                    scripts.functions.spawn_team_obj(
+                        map, scripts.base.Base, 3, all_bases, player.base, cell_m_pos, player.n
+                        )
 
             if keys_clicked[32] == 1 and b_tanks_menu.rect.collidepoint(r_m_pos):
-                tank_menu =  Button(SW/2, SH/2, SW/2, SH/2, (166,166,166))
+                tank_menu =  scripts.button.Button(SW/2, SH/2, SW/2, SH/2, (166,166,166))
                 tanks_win.add(tank_menu)
                 for j, tank_for_menu in enumerate(alpha):
                     x = j%3
                     y = j//3
-                    tanks_for_win.add(ImgTank(SW/2 - SW/8 + x*SW/8 - lencell/2,
+                    tanks_for_win.add(scripts.img_tank.ImgTank(SW/2 - SW/8 + x*SW/8 - lencell/2,
                                               SH/2 - SH/8 + y*SH/8 - lencell/2, player.n, 0, tank_for_menu))
                 tanks_win.add(tanks_for_win)
-                ext = Button(SW*3/4-SW/32, SH/4+SH/32, SW/16, SH/16, (200,0,0))
-                b_take = Button(SW*3/4-SW/32, SH*3/4+SH/32, SW/16, SH/16, (0,200,0))
-                b_throw = Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (200,200,0))
+                ext = scripts.button.Button(SW*3/4-SW/32, SH/4+SH/32, SW/16, SH/16, (200,0,0))
+                b_take = scripts.button.Button(SW*3/4-SW/32, SH*3/4+SH/32, SW/16, SH/16, (0,200,0))
+                b_throw = scripts.button.Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (200,200,0))
                 tanks_win.add(ext, b_take, b_throw)
                 win1 = 1
             if win1 == 1:
@@ -157,7 +168,7 @@ while running:
                             tanks_win.remove(all_selected_win)
                             all_selected_win.empty()
                             tank_take = tank
-                            select_place = Selectedcell(tank.x, tank.y)
+                            select_place = scripts.selectedcell.Selectedcell(tank.x, tank.y)
                             all_selected_win.add(select_place)
                         tanks_win.add(all_selected_win)
                     if b_take.rect.collidepoint(r_m_pos) and tank_take != False:
@@ -175,14 +186,17 @@ while running:
                                + (int(player.base.sprites()[0].y)/lencell-cell_m_pos[1])**2)**0.5
                 if dist_spawn0 <= dist_spawn:
                     if player.res >= ready_to_spawn_tank.ttx[-3]:
-                        spawn_team_obj(map, Tank, 2, all_tanks, player.tanks, cell_m_pos, player.n, 0, ready_to_spawn_tank.ttx)
+                        scripts.functions.spawn_team_obj(
+                            map, scripts.tank.Tank, 2, all_tanks, player.tanks, 
+                            cell_m_pos, player.n, 0, ready_to_spawn_tank.ttx
+                            )
                         player.res -= ready_to_spawn_tank.ttx[-3]
                     ready_to_spawn_tank = False
 
             if keys_clicked[32] == 1:
                 sel_tank = False
                 all_selected_map.empty()
-                select_cell = Selectedcell(lencell * cell_m_pos[0], lencell * cell_m_pos[1])
+                select_cell = scripts.selectedcell.Selectedcell(lencell * cell_m_pos[0], lencell * cell_m_pos[1])
                 all_selected_map.add(select_cell)
                 if map[cell_m_pos[1], cell_m_pos[0]] == 2:
                     for tank in all_tanks:
@@ -193,7 +207,7 @@ while running:
             if  sel_tank != False:
                 sel_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], map, select_cell)
                 if keys_clicked[8] == 1:
-                    sel_tank.shot(all_projectiles, m_m_pos, Projectile)
+                    sel_tank.shot(all_projectiles, m_m_pos, scripts.projectile.Projectile)
                 if keys[12] == 1:
                     map[sel_tank.place[1], sel_tank.place[0]] = 0
                     sel_tank.kill()

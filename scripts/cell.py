@@ -2,7 +2,6 @@ import pygame as pg
 from settings import *
 
 
-
 class Cell(pg.sprite.Sprite):
     W = lencell
     H = W
