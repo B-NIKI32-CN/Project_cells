@@ -1,3 +1,4 @@
+# хуй пися члеен
 import pygame as pg
 import scripts
 import maps
