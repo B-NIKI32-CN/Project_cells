@@ -1,17 +1,3 @@
-# from scripts.player import Player
-# from scripts.functions import builder, spawn_obj, spawn_team_obj
-# from scripts import functions
-# from scripts.cell import Cell
-# from scripts.wall import Wall
-# from scripts.tank import Tank
-# from scripts.img_tank import ImgTank
-# from scripts.base import Base
-# from scripts.button import Button
-# from scripts.surface import Surface
-# from scripts.selectedcell import Selectedcell
-# from scripts.projectile import Projectile
-# import maps.sandlot as sandlot
-# import maps.squares as squares
 import pygame as pg
 import scripts
 import maps
