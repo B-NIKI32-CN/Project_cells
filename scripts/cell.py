@@ -3,10 +3,10 @@ from settings import *
 
 
 class Cell(pg.sprite.Sprite):
-    W = lencell
+    W = len_cell
     H = W
     size = (W, H)
-    width = cellwidth
+    width = cell_width
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
         self.x = x

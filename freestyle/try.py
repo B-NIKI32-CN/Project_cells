@@ -1,5 +1,5 @@
 # from scripts.player import Player
-# from scripts.functions import builder, spawn_obj
+# from scripts.functions import builder, spawn_obj, angle_vector
 # from scripts.cell import Cell
 # from scripts.wall import Wall
 # from scripts.tank import Tank
@@ -11,7 +11,8 @@
 # import maps.squares as squares
 # from settings import *
 # from ttx import *
-# import numpy as np
-from math import sin, cos, pi, radians, atan
-
-print(atan(1))
+import numpy as np
+from math import sin, cos, pi, radians
+i, j = np.indices((10,10))
+print(i, 'i')
+print(j, 'j')

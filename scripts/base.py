@@ -5,7 +5,7 @@ import settings
 
 class Base(pg.sprite.Sprite):
     hp = 2000
-    W = settings.lencell
+    W = settings.len_cell
     H = W
     size = (W, H)
     def __init__(self, x, y, team):
@@ -13,8 +13,12 @@ class Base(pg.sprite.Sprite):
         self.team = team
         self.x = x
         self.y = y
+        self.place = [self.x // self.W, self.y // self.H]
         self.image = pg.Surface(self.size, pg.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W/2, self.y + self.H/2
         self.image.fill(settings.team_to_color[self.team])
         pg.draw.rect(self.image, (0, 0, 0), pg.Rect(self.W/4, self.H/4, self.W/2, self.H/2))
+
+    def draw(self, surface):
+        surface.blit(self.image, (self.x, self.y))

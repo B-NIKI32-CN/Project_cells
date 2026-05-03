@@ -27,7 +27,7 @@ all_bases = pg.sprite.Group()
 all_buttons_menu = pg.sprite.Group()
 all_buttons_game = pg.sprite.Group()
 
-vs = maplenincells * lencell
+vs = map_len_cells * len_cell
 virtualscreen = pg.Surface((vs, vs))
 
 select_cell = 0
@@ -118,7 +118,7 @@ while running:
                 players_flag = False
 
             m_m_pos = (player.place[0] + r_m_pos[0], player.place[1] + r_m_pos[1])
-            cell_m_pos = (m_m_pos[0] // lencell , m_m_pos[1] // lencell)
+            cell_m_pos = (m_m_pos[0] // len_cell , m_m_pos[1] // len_cell)
 
             if keys[32] == 1 and keys[9] == 1:
                 spawn_obj(map, Tank, 2, all_tanks, cell_m_pos, player.n, 0, lt3a)
@@ -131,7 +131,7 @@ while running:
             if keys[32] == 1:
                 sel_tank = False
                 all_selected.empty()
-                select_cell = Selectedcell(lencell * cell_m_pos[0], lencell * cell_m_pos[1])
+                select_cell = Selectedcell(len_cell * cell_m_pos[0], len_cell * cell_m_pos[1])
                 all_selected.add(select_cell)
                 if map[cell_m_pos[1], cell_m_pos[0]] == 2:
                     for tank in all_tanks:

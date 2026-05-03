@@ -2,10 +2,10 @@ import pygame as pg
 from settings import *
 
 class Selectedcell(pg.sprite.Sprite):
-    W = lencell
+    W = len_cell
     H = W
     size = (W, H)
-    width = cellwidth-2
+    width = cell_width - 2
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
         self.x = x
