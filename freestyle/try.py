@@ -13,6 +13,10 @@
 # from ttx import *
 import numpy as np
 from math import sin, cos, pi, radians
-i, j = np.indices((10,10))
-print(i, 'i')
-print(j, 'j')
+
+from settings import team_to_color
+
+# i, j = np.indices((10,10))
+# print(i, 'i')
+# print(j, 'j')
+print(team_to_color)

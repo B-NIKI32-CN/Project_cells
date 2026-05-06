@@ -18,20 +18,22 @@ class Projectile(pg.sprite.Sprite):
         self.rect.center = (self.x, self.y)
         pg.draw.circle(self.image, (255,0,0), (projectile_size/2, projectile_size/2), projectile_size/2)
 
-    def proj_collide(self, all_walls, all_tanks, team_tanks):
+    def proj_collide(self, all_walls, all_tanks, team_tanks, all_bases):
         if pg.sprite.spritecollide(self, all_walls, False):
             self.kill()
         tank = pg.sprite.spritecollide(self, all_tanks, False)
         if len(tank) != 0:
             if team_tanks.has(tank[0]) == False:
-                # print('близко')
                 if tank[0].rect.collidepoint(self.rect.center):
-                    # print('есть контакт')
                     tank[0].get_bullet(self.angle, self.rect.center, self.dam, self.pen)
                     self.kill()
+        base = pg.sprite.spritecollide(self, all_bases, False)
+        if len(base) !=0:
+            base[0].damage(self.dam)
+            self.kill()
 
-    def update(self, all_walls, all_tanks, team_tanks):
+    def update(self, all_walls, all_tanks, team_tanks, all_bases):
         self.x += projectile_speed * cos(self.angle)
         self.y += projectile_speed * sin(self.angle)
         self.rect.center = (self.x, self.y)
-        self.proj_collide(all_walls, all_tanks, team_tanks)
+        self.proj_collide(all_walls, all_tanks, team_tanks, all_bases)

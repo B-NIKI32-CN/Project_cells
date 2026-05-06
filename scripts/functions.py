@@ -24,8 +24,6 @@ def spawn_team_obj(map, obj, objind, objgroup, objgroup_player, sel_cell_pos, *i
         objgroup_player.add(odj)
         map[sel_cell_pos[1], sel_cell_pos[0]] = objind
 
-
-
 def spawn_obj(map, obj, objind, objgroup, sel_cell_pos, *info):
     if map[sel_cell_pos[1], sel_cell_pos[0]] == 0:
         odj = obj(sel_cell_pos[0] * len_cell, sel_cell_pos[1] * len_cell, *info)
@@ -77,7 +75,29 @@ def mist_doting(A, group): # прибавляю к позициям матриц
     return A
     # подробно не описывал, все равно ты нумпай не будешь смотреть по-моему
 
-
+def cell_distribution(n, team, group): # функция присвоения клетки команде, нужна для начисления exp в конце хода (равно количеству "захваченных клеток")
+    matrixs = [0] * n
+    dopusk = [1] * n
+    bool_matrix = np.ones((map_len_cells, map_len_cells), dtype=bool)
+    i, j = np.indices((map_len_cells, map_len_cells), np.float64)
+    for tank in group:
+        if dopusk[tank.team] == 1 and matrixs[tank.team] == 0:
+            matrixs[tank.team] = np.zeros((map_len_cells, map_len_cells),np.float64)
+            dopusk[tank.team] = 0
+        pos = tank.place
+        dist_in2 = (pos[1] - i)**2 + (pos[0] - j)**2
+        dist_in2[pos[1], pos[0]] = 1e-6
+        matrixs[tank.team] += 1/dist_in2
+    for i in range(n):
+        if i == team:
+            continue
+        delta_matrix = matrixs[team] - matrixs[i]
+        if dopusk[team] == 0:
+            bool_matrix[np.where(delta_matrix < 0)] = 0
+        else:
+            bool_matrix[:,:] = 0
+    exp = len(np.where(bool_matrix == 1)[0])
+    return exp
 
 def f1(x):
     return sin(pi*(x-0.5))/2 + 0.5
@@ -95,4 +115,8 @@ def damage(a, p, d0):
         k = f3(x)
     d = k * d0
     return d
+
+def get_res(n): # функция считающая сколько начислить ресурсов
+    res = (1-n/12) * 40
+    return int(res)
 

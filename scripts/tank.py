@@ -1,8 +1,8 @@
+from importlib import reload
 from scripts.functions import angle_vector, damage
 from settings import *
 import pygame as pg
 from math import sin, cos, pi, radians, atan
-
 
 class Tank(pg.sprite.Sprite):
     W = len_cell
@@ -58,14 +58,16 @@ class Tank(pg.sprite.Sprite):
         self.imageOrig = self.image
 
         self.vis = self.ttx[0]
-        self.hp = self.ttx[1]
+        self.hp = 100000#self.ttx[1]
         self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
-        self.m = [10000, 32,self.ttx[7]]  #self.ttx[5]
+        self.m = [100, self.ttx[6],self.ttx[7]] #self.ttx[5]
         self.dam = self.ttx[8]
         self.pen = self.ttx[9]
-        self.rel = 0                #self.ttx[10]
+        self.rel = 0#self.ttx[10]
         self.dist = self.ttx[11]
         self.cost = self.ttx[12]
+        self.exp = self.ttx[13]
+        self.rel_dinamic = 0
 
     def move(self, w, a, s, d, map, select_cell):
         map[self.place[1], self.place[0]] = 0
@@ -114,25 +116,24 @@ class Tank(pg.sprite.Sprite):
         select_cell.rect.center = self.x + self.W / 2, self.y + self.H / 2
 
     def shot(self, all_projectiles, m_m_pos, Projectile):
-        if self.rel == 0:
+        if self.rel_dinamic == 0:
             dx = m_m_pos[0] - self.rect.centerx
             dy = m_m_pos[1] - self.rect.centery
             angle = angle_vector(dx, dy)
             projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, self.team)
             all_projectiles.add(projectile)
+            self.rel_dinamic = self.rel
     def get_bullet(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):
         tl = [self.rect.left - bullet_pos[0], self.rect.top - bullet_pos[1]]
         tr = [self.rect.right - bullet_pos[0], self.rect.top - bullet_pos[1]]
         br = [self.rect.right - bullet_pos[0], self.rect.bottom - bullet_pos[1]]
         bl = [self.rect.left - bullet_pos[0], self.rect.bottom - bullet_pos[1]]
-        # print(tl, tr, br, bl, 'векторы')
         tl_angle = angle_vector(tl[0], tl[1])
         if tl_angle > 0:
             tl_angle = -tl_angle
         tr_angle = angle_vector(tr[0], tr[1])
         br_angle = angle_vector(br[0], br[1])
         bl_angle = angle_vector(bl[0], bl[1])
-        # print(tl_angle, tr_angle, br_angle, bl_angle, 'углы')
         bullet_angle += pi
         if bullet_angle < -pi:
             while bullet_angle < -pi:
@@ -148,22 +149,31 @@ class Tank(pg.sprite.Sprite):
             side=2
         if bl_angle <= bullet_angle or bullet_angle <= tl_angle:
             side=3
-        # print(bullet_angle, 'направляющий')
         if side == self.orient:
             arm = self.a[0]
         if abs(side-self.orient) == 1 or abs(side-self.orient) == 3:
             arm = self.a[1]
         if abs(side-self.orient) == 2:
             arm = self.a[2]
+        if side == 0 or side == 2:
+            arm /= abs(sin(bullet_angle))
+        else:
+            arm /= abs(cos(bullet_angle))
         self.hp -= damage(arm, bullet_pen, bullet_dam)
-
         if self.hp <= 0:
             self.kill()
 
-    def draw(self, surface):
+    def draw(self, surface, team):
         surface.blit(self.image, (self.x, self.y))
-
+        color = team_to_anticolor[self.team]
+        hp_draw = font16.render(f"{int(self.hp)}", True, color)
+        hp_draw.set_alpha(200)
+        surface.blit(hp_draw, (self.x+self.delta/2, self.y+self.delta/2))
+        if self.team == team:
+            reload_draw = font16.render(f"|{self.rel_dinamic}", True, color)
+            reload_draw.set_alpha(200)
+            surface.blit(reload_draw, (self.x+self.W*0.8, self.y + self.delta / 2))
     def update(self):
         self.m = [self.ttx[5], self.ttx[6], self.ttx[7]]
-        if self.rel >= 1:
-            self.rel -= 1
+        if self.rel_dinamic >= 1:
+            self.rel_dinamic -= 1

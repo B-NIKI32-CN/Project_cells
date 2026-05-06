@@ -10,9 +10,11 @@ class Player:
         self.place = [0,0]
         self.n = n
         self.res = res
+        self.exp = 0
         self.base = 0
         self.tanks = pg.sprite.Group()
         self.mists = pg.sprite.Group()
+        self.mist_matrix = np.zeros((map_len_cells, map_len_cells))
     def move(self, w, a, s, d):
         if w == 1:
             self.place[1] -= self.speed
