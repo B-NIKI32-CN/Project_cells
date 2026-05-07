@@ -176,8 +176,8 @@ while running:
                     and player.exp >= ready_to_spawn_tank.ttx[13] and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 scripts.functions.spawn_team_obj(
                     map, scripts.tank.Tank, 2, all_tanks, player.tanks,
-                    cell_mouse_pos, player.n, 1, ready_to_spawn_tank.ttx
-                    )
+                    cell_mouse_pos, player.n, 1, ready_to_spawn_tank.ttx,
+                    player, scripts.mist.Mist)
                 player.res -= ready_to_spawn_tank.ttx[-4]
                 player.mists.empty()
                 player.mist_matrix = scripts.functions.mist_doting(np.zeros((map_len_cells, map_len_cells), np.int64),player.tanks)

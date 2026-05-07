@@ -1,19 +1,22 @@
 from importlib import reload
-from scripts.functions import angle_vector, damage
+from scripts.functions import angle_vector, damage, mist_doting, mist_builder
 from settings import *
 import pygame as pg
 from math import sin, cos, pi, radians, atan
+import numpy as np
 
 class Tank(pg.sprite.Sprite):
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team, orient, ttx):
+    def __init__(self, x, y, team, orient, ttx, player, Mist):
         pg.sprite.Sprite.__init__(self)
         self.ttx = ttx
         self.team = team
+        self.player = player
         self.orient = orient
+        self.Mist = Mist
         self.x = x
         self.y = y
         self.place = [self.x//self.W, self.y//self.H]
@@ -60,10 +63,10 @@ class Tank(pg.sprite.Sprite):
         self.vis = self.ttx[0]
         self.hp = self.ttx[1]  #self.ttx[1]
         self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
-        self.m = [self.ttx[5], self.ttx[6],self.ttx[7]] #self.ttx[5]
+        self.m = [self.ttx[5], 37,self.ttx[7]] #self.ttx[5]
         self.dam = self.ttx[8]
         self.pen = self.ttx[9]
-        self.rel = self.ttx[10]  #self.ttx[10]
+        self.rel = self.ttx[10]
         self.dist = self.ttx[11]
         self.cost = self.ttx[12]
         self.exp = self.ttx[13]
@@ -103,7 +106,7 @@ class Tank(pg.sprite.Sprite):
             if self.orient == 3 and self.place[0] != map_len_cells-1 and map[self.place[1], self.place[0] + 1] == 0:
                 self.x += self.W
                 self.place[0] += 1
-            self.m[3] -= 1
+            self.m[2] -= 1
         if d == 1 and self.m[1] >= 1:
             self.orient += 1
             if self.orient > 3:
@@ -162,6 +165,11 @@ class Tank(pg.sprite.Sprite):
         self.hp -= damage(arm, bullet_pen, bullet_dam)
         if self.hp <= 0:
             self.kill()
+            self.player.mists.empty()
+            self.player.mist_matrix = mist_doting(np.zeros((map_len_cells, map_len_cells), np.int64),
+                                                               self.player.tanks)
+            mist_builder(self.player.mist_matrix, self.Mist, self.player.mists)
+            self.player.mist_matrix[self.player.base.sprites()[0].place[1], self.player.base.sprites()[0].place[0]] = 1
 
     def draw(self, surface, team):
         surface.blit(self.image, (self.x, self.y))
