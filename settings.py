@@ -28,7 +28,7 @@ map_len_cells = 64
 projectile_size = 4
 projectile_speed = projectile_size
 
-select_color = 0,255,255 # не пон
+select_color = (0,255,255) # не пон
 
 team_to_color = {0:(0,0,255), 1:(0,255,0), 2:(255, 0, 0), 3:(255, 255, 0), 4:(255, 0, 255)}
 team_to_anticolor = {0:(255, 165, 0), 1:(255,0,0), 2:(0, 255, 0), 3:(128, 0, 128), 4:(255, 0, 255)}

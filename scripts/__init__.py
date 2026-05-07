@@ -4,7 +4,6 @@ from . import\
     cell, \
     functions, \
     img_tank, \
-    map, \
     player, \
     projectile, \
     selectedcell, \

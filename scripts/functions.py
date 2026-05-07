@@ -119,4 +119,3 @@ def damage(a, p, d0):
 def get_res(n): # функция считающая сколько начислить ресурсов
     res = (1-n/12) * 40
     return int(res)
-

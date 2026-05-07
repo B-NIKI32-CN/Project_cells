@@ -120,7 +120,7 @@ class Tank(pg.sprite.Sprite):
             dx = m_m_pos[0] - self.rect.centerx
             dy = m_m_pos[1] - self.rect.centery
             angle = angle_vector(dx, dy)
-            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, self.team)
+            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, (self.dist+0.5)*len_cell, self.team)  # можно и self.H но они равны
             all_projectiles.add(projectile)
             self.rel_dinamic = self.rel
     def get_bullet(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):

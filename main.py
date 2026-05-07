@@ -11,11 +11,7 @@ screen = pg.display.set_mode((SW, SH), vsync=1)
 # SW = screen.get_width()
 # SH = screen.get_height()
 
-
-
-
 text_start = font48.render("Proceed", True, (0, 0, 0))
-
 
 pg.display.set_caption("meme")
 clock = pg.time.Clock()
@@ -118,7 +114,8 @@ while running:
 
         if buttons_flag_game:
             b_turn = scripts.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
-            b_tanks_menu = scripts.button.Button(SW/2, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
+            b_tanks_menu = scripts.button.Button(SW*1/16, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
+            canvas = scripts.surface.Surface(SW/2, 30, 300, 70, (128,128,128), 1)
             all_buttons_game.add(b_turn)
             all_buttons_game.add(b_tanks_menu)
             buttons_flag_game = False
@@ -282,8 +279,9 @@ while running:
         screen.blit(virtualscreen, dest)
         all_buttons_game.draw(screen)
         tanks_win.draw(screen)
-        screen.blit(text_res, (SW/2, 0))
-        screen.blit(text_exp, (SW/2, 24))
+        canvas.draw(screen)
+        screen.blit(text_res, (SW/2-140, 0))
+        screen.blit(text_exp, (SW/2-140, 30))
 
     keys_clicked = [0] * 100
     clock.tick(FPS)

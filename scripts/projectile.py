@@ -4,7 +4,7 @@ from math import sin, cos, pi, radians
 
 class Projectile(pg.sprite.Sprite):
     speed = projectile_speed
-    def __init__(self, x, y, angle, dam, pen, team):
+    def __init__(self, x, y, angle, dam, pen, dist, team):
         pg.sprite.Sprite.__init__(self)
         self.team = team
         self.x = x
@@ -12,6 +12,7 @@ class Projectile(pg.sprite.Sprite):
         self.angle = angle
         self.dam = dam
         self.pen = pen
+        self.dist = dist
         self.size = (projectile_size, projectile_size)
         self.image = pg.Surface(self.size, pg.SRCALPHA)
         self.rect = self.image.get_rect()
@@ -33,7 +34,12 @@ class Projectile(pg.sprite.Sprite):
             self.kill()
 
     def update(self, all_walls, all_tanks, team_tanks, all_bases):
-        self.x += projectile_speed * cos(self.angle)
-        self.y += projectile_speed * sin(self.angle)
+        dx = projectile_speed * cos(self.angle)
+        dy = projectile_speed * sin(self.angle)
+        self.x += dx
+        self.y += dy
+        self.dist -= (dx**2 + dy**2)**0.5
         self.rect.center = (self.x, self.y)
         self.proj_collide(all_walls, all_tanks, team_tanks, all_bases)
+        if self.dist <= 0:
+            self.kill()
