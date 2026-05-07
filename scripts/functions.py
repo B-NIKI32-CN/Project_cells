@@ -119,3 +119,29 @@ def damage(a, p, d0):
 def get_res(n): # функция считающая сколько начислить ресурсов
     res = (1-n/12) * 40
     return int(res)
+
+def calclin(pount1, pount2):
+    x1 = pount1[0]
+    y1 = pount1[1]
+    x2 = pount2[0]
+    y2 = pount2[1]
+    if x1*(y1+y2) != y1*(x1+x2): # условия не прохождения прямой через 0,0 ведь тогда потом матрице пизда
+        if x1 == x2:
+            solve = np.array([1, 0])
+            equals = x1
+        elif y1 == y2:
+            solve = np.array([0, 1])
+            equals = y1
+        else:
+            A = np.array([[x1, y1], [x2, y2]])
+            solve = np.linalg.solve(A, np.ones(2)) # a, b
+            equals = 1 # число после равно
+    else:
+        solve = np.array([y2-y1, x1-x2])
+        equals = 0
+
+    return solve, equals  # возвращает a и b уравнения прямой вида x*a + y*b = с, и c (equals)
+
+def dist_linpoint(point, solve, equals):
+    dist = abs(point[0]*solve[0] + point[1]*solve[1] - equals) / (solve[0]**2 + solve[1]**2)**0.5
+    return dist

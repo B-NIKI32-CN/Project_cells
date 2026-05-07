@@ -266,15 +266,15 @@ while running:
         screen.fill((255, 255, 255))
         player.mists.draw(virtualscreen)
         all_cells.draw(virtualscreen)
-        all_walls.draw(virtualscreen)
         for tank in all_tanks:
             if player.mist_matrix[tank.place[1], tank.place[0]] > 0:
                 tank.draw(virtualscreen, player.n)
         for base in all_bases:
             if player.mist_matrix[base.place[1], base.place[0]] > 0:
                 base.draw(virtualscreen)
-        all_selected_map.draw(virtualscreen)
         all_projectiles.draw(virtualscreen)
+        all_walls.draw(virtualscreen)
+        all_selected_map.draw(virtualscreen)
         dest = (-player.place[0], -player.place[1] )
         screen.blit(virtualscreen, dest)
         all_buttons_game.draw(screen)

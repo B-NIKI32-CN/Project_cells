@@ -58,12 +58,12 @@ class Tank(pg.sprite.Sprite):
         self.imageOrig = self.image
 
         self.vis = self.ttx[0]
-        self.hp = 100000#self.ttx[1]
+        self.hp = self.ttx[1]  #self.ttx[1]
         self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
-        self.m = [100, self.ttx[6],self.ttx[7]] #self.ttx[5]
+        self.m = [self.ttx[5], self.ttx[6],self.ttx[7]] #self.ttx[5]
         self.dam = self.ttx[8]
         self.pen = self.ttx[9]
-        self.rel = 0#self.ttx[10]
+        self.rel = self.ttx[10]  #self.ttx[10]
         self.dist = self.ttx[11]
         self.cost = self.ttx[12]
         self.exp = self.ttx[13]

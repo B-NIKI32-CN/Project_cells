@@ -14,3 +14,4 @@ class Wall(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W/2, self.y + self.H/2
         self.image.fill((0, 0, 0))
+        self.place = [self.x // self.W, self.y // self.H]
