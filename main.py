@@ -95,12 +95,14 @@ while running:
     if scene == 'menu':
         if menu_not_builded:
             b_start = scripts.button.Button(SW/2, SH/2,200, 100, (0,255,255))
+            b_start.edges((255,128,0), 5)
             all_buttons_menu.add(b_start)
             menu_not_builded = False
         screen.fill((255,255,255))
         all_buttons_menu.draw(screen)
         screen.blit(text_start, (SW/2-75, SH/2-20))
         if keys_clicked[32] == 1 and b_start.rect.collidepoint(r_m_pos):
+            keys_clicked[32] = 0
             scene = 'game'
             menu_not_builded = True
             all_buttons_menu.empty()
@@ -114,10 +116,13 @@ while running:
 
         if buttons_flag_game:
             b_turn = scripts.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
-            b_tanks_menu = scripts.button.Button(SW*1/16, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
-            canvas = scripts.surface.Surface(SW/2, 30, 300, 70, (128,128,128), 1)
+            b_turn.edges((255,128,0), 5)
+            # b_tanks_menu = scripts.button.Button(SW*1/16, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
+            canvas0 = scripts.surface.Surface(SW/2, SH*3/80, SW * 15/64, SH * 7/80, (128,128,128), 1, select_color,  int(SW*2/1280))
+            canvas1 = scripts.surface.Surface(SW*15/16, SH*13.5/16, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280))
+            canvas_for_hp = scripts.surface.Surface(SW/64, SH/2, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280))
             all_buttons_game.add(b_turn)
-            all_buttons_game.add(b_tanks_menu)
+            # all_buttons_game.add(b_tanks_menu)
             buttons_flag_game = False
 
         if players_flag:   # регистрация игроков
@@ -132,7 +137,19 @@ while running:
         dest_mouse_pos = (player.place[0] + r_m_pos[0], player.place[1] + r_m_pos[1])   # положение мыши на карте
         cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
 
-        if keys_clicked[32] == 1 and b_tanks_menu.rect.collidepoint(r_m_pos): # меню выбора танков
+        if player.base == 0: # установка базы игрока
+            if (keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
+                    and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
+                keys_clicked[32] = 0
+                player.base = pg.sprite.Group()
+                scripts.functions.spawn_team_obj(
+                    map, scripts.base.Base, 3, all_bases, player.base, cell_mouse_pos, player.n, player
+                    )
+                player.mist_matrix[player.base.sprites()[0].place[1], player.base.sprites()[0].place[0]] = 1 # делаю видимым положение в которое только что поставил базу
+                player.hp = player.base.sprites()[0].hp
+
+
+        if keys_clicked[32] == 1 and player.base != 0 and player.base.sprites()[0].place[0] == cell_mouse_pos[0] and player.base.sprites()[0].place[1] == cell_mouse_pos[1]: # меню выбора танков
             keys_clicked[32] = 0
             tank_menu =  scripts.button.Button(SW/2, SH/2, SW/2, SH/2, (66,66,66))
             tanks_win.add(tank_menu)
@@ -177,10 +194,10 @@ while running:
                 scripts.functions.spawn_team_obj(
                     map, scripts.tank.Tank, 2, all_tanks, player.tanks,
                     cell_mouse_pos, player.n, 1, ready_to_spawn_tank.ttx,
-                    player, scripts.mist.Mist)
+                    player, scripts.mist.Mist, map)
                 player.res -= ready_to_spawn_tank.ttx[-4]
                 player.mists.empty()
-                player.mist_matrix = scripts.functions.mist_doting(np.zeros((map_len_cells, map_len_cells), np.int64),player.tanks)
+                player.mist_matrix = scripts.functions.mist_doting3000(player.tanks)
                 scripts.functions.mist_builder(player.mist_matrix, scripts.mist.Mist, player.mists)
                 player.mist_matrix[player.base.sprites()[0].place[1], player.base.sprites()[0].place[0]] = 1
                 ready_to_spawn_tank = False
@@ -202,16 +219,6 @@ while running:
             all_selected_map.empty()
             len_game_count += 1
 
-        if player.base == 0: # установка базы игрока
-
-            if (keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
-                    and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
-                player.base = pg.sprite.Group()
-                scripts.functions.spawn_team_obj(
-                    map, scripts.base.Base, 3, all_bases, player.base, cell_mouse_pos, player.n
-                    )
-                player.mist_matrix[player.base.sprites()[0].place[1], player.base.sprites()[0].place[0]] = 1 # делаю видимым положение в которое только что поставил базу
-
         if keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and open_win_market == 0: # выбор клетки
             keys_clicked[32] = 0
             sel_tank = False
@@ -226,22 +233,37 @@ while running:
                         break
 
         if  sel_tank != False: # управление танком # ваня можешь переписать != False
-            sel_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], map, select_cell)
+            sel_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], select_cell)
             if keys_clicked[0] or keys_clicked[1] or keys_clicked[2] or keys_clicked[3]:
                 player.mists.empty()
-                player.mist_matrix = scripts.functions.mist_doting(np.zeros((map_len_cells, map_len_cells), np.int64),player.tanks)
+                player.mist_matrix = scripts.functions.mist_doting3000(player.tanks)
                 scripts.functions.mist_builder(player.mist_matrix, scripts.mist.Mist, player.mists)
                 player.mist_matrix[player.base.sprites()[0].place[1], player.base.sprites()[0].place[0]] = 1
+            keys_clicked[0] = 0
+            keys_clicked[1] = 0
+            keys_clicked[2] = 0
+            keys_clicked[3] = 0
             if keys_clicked[8] == 1:
+                keys_clicked[8] = 0
                 sel_tank.shot(all_projectiles, dest_mouse_pos, scripts.projectile.Projectile)
             if keys[12] == 1:
                 map[sel_tank.place[1], sel_tank.place[0]] = 0
                 sel_tank.kill()
                 sel_tank = False
+                player.mists.empty()
+                player.mist_matrix = scripts.functions.mist_doting3000(player.tanks)
+                scripts.functions.mist_builder(player.mist_matrix, scripts.mist.Mist, player.mists)
+                player.mist_matrix[player.base.sprites()[0].place[1], player.base.sprites()[0].place[0]] = 1
         else:  # управление камерой если не выбран танк
             player.move(keys[0], keys[1], keys[2], keys[3])
+            keys_clicked[0] = 0
+            keys_clicked[1] = 0
+            keys_clicked[2] = 0
+            keys_clicked[3] = 0
+            keys_clicked[8] = 0
 
         if keys_clicked[11] == 1:
+            keys_clicked[11] = 0
             scene = 'menu'
             all_walls.empty()
             all_cells.empty()
@@ -259,6 +281,11 @@ while running:
             turn = 0
             len_game_count = 0
 
+        canvas_hp = scripts.surface.Surface(SW/64, (SH*(1/4+5/800)) + SH*(1/4-5/800)*(player.hp/base_hp), SW/32 - SW*10/1280, (SH/2 - SW*10/1280)*(player.hp/base_hp),
+                                            (128+(team_to_color[player.n][0]-128)*(player.hp/base_hp),
+                                             128+(team_to_color[player.n][1]-128)*(player.hp/base_hp),
+                                             128+(team_to_color[player.n][2]-128)*(player.hp/base_hp)), 0, 0, 0)
+        text_turns = font48.render(f'Turn: {len_game_count//2 + 1}', True, team_to_color[player.n])
         text_res = font48.render(f"Resources : {player.res}", True, team_to_color[player.n])
         text_exp = font48.render(f"Сapture : {player.exp}", True, team_to_color[player.n])
         all_projectiles.update(all_walls, all_tanks, player.tanks, all_bases)
@@ -279,11 +306,14 @@ while running:
         screen.blit(virtualscreen, dest)
         all_buttons_game.draw(screen)
         tanks_win.draw(screen)
-        canvas.draw(screen)
-        screen.blit(text_res, (SW/2-140, 0))
-        screen.blit(text_exp, (SW/2-140, 30))
+        canvas0.draw(screen)
+        canvas1.draw(screen)
+        canvas_for_hp.draw(screen)
+        canvas_hp.draw(screen)
+        screen.blit(text_res, (SW/2-SW*7/64, 0))
+        screen.blit(text_exp, (SW/2-SW*7/64, SH*3/80))
+        screen.blit(text_turns, (SW*14/16 + SW*2/256, SH*14/16 - SW/32))
 
-    keys_clicked = [0] * 100
     clock.tick(FPS)
     pg.display.flip()
 

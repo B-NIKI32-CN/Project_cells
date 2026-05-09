@@ -10,13 +10,14 @@ class Tank(pg.sprite.Sprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team, orient, ttx, player, Mist):
+    def __init__(self, x, y, team, orient, ttx, player, Mist, map):
         pg.sprite.Sprite.__init__(self)
         self.ttx = ttx
         self.team = team
         self.player = player
         self.orient = orient
         self.Mist = Mist
+        self.map = map
         self.x = x
         self.y = y
         self.place = [self.x//self.W, self.y//self.H]
@@ -72,19 +73,27 @@ class Tank(pg.sprite.Sprite):
         self.exp = self.ttx[13]
         self.rel_dinamic = 0
 
-    def move(self, w, a, s, d, map, select_cell):
-        map[self.place[1], self.place[0]] = 0
+        radius2 = self.vis**2
+        i, j = np.indices((self.vis*2 + 1, self.vis*2 + 1))
+        dist_in2 = (self.vis - i)**2 + (self.vis - j)**2-1
+        pos = np.where(dist_in2 <= radius2)
+        dist_in2[:,:] = 0
+        dist_in2[pos] = 1
+        self.mist_matrix = dist_in2
+
+    def move(self, w, a, s, d, select_cell):
+        self.map[self.place[1], self.place[0]] = 0
         if w == 1 and self.m[0] >= 1:
-            if self.orient == 0 and self.place[1] != 0 and map[self.place[1]-1, self.place[0]] == 0:
+            if self.orient == 0 and self.place[1] != 0 and self.map[self.place[1]-1, self.place[0]] == 0:
                 self.y -= self.H
                 self.place[1] -= 1
-            if self.orient == 1 and self.place[0] != map_len_cells-1 and map[self.place[1], self.place[0] + 1] == 0:
+            if self.orient == 1 and self.place[0] != map_len_cells-1 and self.map[self.place[1], self.place[0] + 1] == 0:
                 self.x += self.W
                 self.place[0] += 1
-            if self.orient == 2 and self.place[1] != map_len_cells-1 and map[self.place[1] + 1, self.place[0]] == 0:
+            if self.orient == 2 and self.place[1] != map_len_cells-1 and self.map[self.place[1] + 1, self.place[0]] == 0:
                 self.y += self.H
                 self.place[1] += 1
-            if self.orient == 3 and self.place[0] != 0 and map[self.place[1], self.place[0]-1] == 0:
+            if self.orient == 3 and self.place[0] != 0 and self.map[self.place[1], self.place[0]-1] == 0:
                 self.x -= self.W
                 self.place[0] -= 1
             self.m[0] -= 1
@@ -94,16 +103,16 @@ class Tank(pg.sprite.Sprite):
                 self.orient = 3
             self.m[1] -= 1
         if s == 1 and self.m[2] >= 1:
-            if self.orient == 0 and self.place[1] != map_len_cells-1 and map[self.place[1] + 1, self.place[0]] == 0:
+            if self.orient == 0 and self.place[1] != map_len_cells-1 and self.map[self.place[1] + 1, self.place[0]] == 0:
                 self.y += self.H
                 self.place[1] += 1
-            if self.orient == 1 and self.place[0] != 0 and map[self.place[1], self.place[0]-1] == 0:
+            if self.orient == 1 and self.place[0] != 0 and self.map[self.place[1], self.place[0]-1] == 0:
                 self.x -= self.W
                 self.place[0] -= 1
-            if self.orient == 2 and self.place[1] != 0 and map[self.place[1]-1, self.place[0]] == 0:
+            if self.orient == 2 and self.place[1] != 0 and self.map[self.place[1]-1, self.place[0]] == 0:
                 self.y -= self.H
                 self.place[1] -= 1
-            if self.orient == 3 and self.place[0] != map_len_cells-1 and map[self.place[1], self.place[0] + 1] == 0:
+            if self.orient == 3 and self.place[0] != map_len_cells-1 and self.map[self.place[1], self.place[0] + 1] == 0:
                 self.x += self.W
                 self.place[0] += 1
             self.m[2] -= 1
@@ -112,7 +121,7 @@ class Tank(pg.sprite.Sprite):
             if self.orient > 3:
                 self.orient = 0
             self.m[1] -= 1
-        map[self.place[1], self.place[0]] = 2
+        self.map[self.place[1], self.place[0]] = 2
         self.image = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W / 2, self.y + self.H / 2
@@ -164,6 +173,7 @@ class Tank(pg.sprite.Sprite):
             arm /= abs(cos(bullet_angle))
         self.hp -= damage(arm, bullet_pen, bullet_dam)
         if self.hp <= 0:
+            self.map[self.place[1], self.place[0]] = 0
             self.kill()
             self.player.mists.empty()
             self.player.mist_matrix = mist_doting(np.zeros((map_len_cells, map_len_cells), np.int64),

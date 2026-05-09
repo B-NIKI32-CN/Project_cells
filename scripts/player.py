@@ -12,6 +12,7 @@ class Player:
         self.res = res
         self.exp = 0
         self.base = 0
+        self.hp = 1
         self.tanks = pg.sprite.Group()
         self.mists = pg.sprite.Group()
         self.mist_matrix = np.zeros((map_len_cells, map_len_cells))

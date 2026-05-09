@@ -3,14 +3,15 @@ from settings import *
 
 
 class Base(pg.sprite.Sprite):
-    hp = 2000
+    hp = base_hp
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team):
+    def __init__(self, x, y, team, player):
         pg.sprite.Sprite.__init__(self)
         self.team = team
+        self.player = player
         self.x = x
         self.y = y
         self.place = [self.x // self.W, self.y // self.H]
@@ -29,5 +30,7 @@ class Base(pg.sprite.Sprite):
 
     def damage(self, damage):
         self.hp -= damage
+        self.player.hp = self.hp
         if self.hp <= 0:
             self.kill()
+            self.player.hp = 0
