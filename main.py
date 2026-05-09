@@ -53,12 +53,12 @@ turn = 0
 n = 2
 len_game_count = 0
 player = 0
+dam_text_timelive = 0
 all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
             pg.K_ESCAPE, pg.K_q)
 
 while running:
-    # mouse_pos = pg.mouse.get_pos()
     r_m_pos = pg.mouse.get_pos()
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -117,12 +117,10 @@ while running:
         if buttons_flag_game:
             b_turn = scripts.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
             b_turn.edges((255,128,0), 5)
-            # b_tanks_menu = scripts.button.Button(SW*1/16, SH*15/16,SW*1/8, SH*1/8, (150,0,255))
-            canvas0 = scripts.surface.Surface(SW/2, SH*3/80, SW * 15/64, SH * 7/80, (128,128,128), 1, select_color,  int(SW*2/1280))
+            canvas0 = scripts.surface.Surface(SW/2, SH*3/80, SW*15/64, SH*8/80, (128,128,128), 1, select_color,  int(SW*2/1280))
             canvas1 = scripts.surface.Surface(SW*15/16, SH*13.5/16, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280))
             canvas_for_hp = scripts.surface.Surface(SW/64, SH/2, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280))
             all_buttons_game.add(b_turn)
-            # all_buttons_game.add(b_tanks_menu)
             buttons_flag_game = False
 
         if players_flag:   # регистрация игроков
@@ -152,6 +150,7 @@ while running:
         if keys_clicked[32] == 1 and player.base != 0 and player.base.sprites()[0].place[0] == cell_mouse_pos[0] and player.base.sprites()[0].place[1] == cell_mouse_pos[1]: # меню выбора танков
             keys_clicked[32] = 0
             tank_menu =  scripts.button.Button(SW/2, SH/2, SW/2, SH/2, (66,66,66))
+            tank_menu.edges((255,128,0), 10)
             tanks_win.add(tank_menu)
             for j, tank_for_menu in enumerate(alpha):
                 x = j%3
@@ -160,8 +159,11 @@ while running:
                                                            SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, player.n, 0, tank_for_menu))
             tanks_win.add(tanks_for_win)
             ext = scripts.button.Button(SW*3/4-SW/32, SH/4+SH/32, SW/16, SH/16, (200,0,0))
-            b_take = scripts.button.Button(SW*3/4-SW/32, SH*3/4+SH/32, SW/16, SH/16, (0,200,0))
-            b_throw = scripts.button.Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (200,200,0))
+            ext.edges((0,255,255), 5)
+            b_take = scripts.button.Button(SW*3/4-SW/32, SH*3/4+SH/32, SW/16, SH/16, (128,255,128))
+            b_take.edges((0,128,0), 5)
+            b_throw = scripts.button.Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (255,255,128))
+            b_throw.edges((128,128,0), 5)
             tanks_win.add(ext, b_take, b_throw)
             open_win_market = 1
         if open_win_market == 1: # выбор танков в соответственном меню
@@ -174,10 +176,15 @@ while running:
                         tank_take = tank
                         select_place = scripts.selectedcell.Selectedcell(tank.x, tank.y)
                         all_selected_win.add(select_place)
+                        b_take.edges((0, 128, 0), 5)
+                        b_throw.edges((128, 128, 0), 5)
                     tanks_win.add(all_selected_win)
                 if b_take.rect.collidepoint(r_m_pos) and tank_take != False:
+                    b_take.edges((0, 255, 255), 5)
                     ready_to_spawn_tank = tank_take
                 if b_throw.rect.collidepoint(r_m_pos) and ready_to_spawn_tank != False:
+                    b_throw.edges((0, 255, 255), 5)
+                    b_take.edges((0, 128, 0), 5)
                     ready_to_spawn_tank = False
                 if ext.rect.collidepoint(r_m_pos):
                     tanks_win.empty()
@@ -204,7 +211,7 @@ while running:
 
         if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos): # смена хода
             keys_clicked[32] = 0
-            if len_game_count != 0:
+            if len_game_count//n != 0:
                 player.exp += scripts.functions.cell_distribution(n, player.n, all_tanks)
                 player.res += scripts.functions.get_res(len(player.tanks.sprites()))
             player.tanks.update()
@@ -285,10 +292,16 @@ while running:
                                             (128+(team_to_color[player.n][0]-128)*(player.hp/base_hp),
                                              128+(team_to_color[player.n][1]-128)*(player.hp/base_hp),
                                              128+(team_to_color[player.n][2]-128)*(player.hp/base_hp)), 0, 0, 0)
-        text_turns = font48.render(f'Turn: {len_game_count//2 + 1}', True, team_to_color[player.n])
+        text_turns = font48.render(f'Turn: {len_game_count//n + 1}', True, team_to_color[player.n])
         text_res = font48.render(f"Resources : {player.res}", True, team_to_color[player.n])
         text_exp = font48.render(f"Сapture : {player.exp}", True, team_to_color[player.n])
-        all_projectiles.update(all_walls, all_tanks, player.tanks, all_bases)
+        # all_projectiles.update(all_walls, all_tanks, player.tanks, all_bases)
+        for projectile in all_projectiles:
+            dam = projectile.update(all_walls, all_tanks, player.tanks, all_bases)
+            if dam != 0:
+                dam_text = font32.render(f'{int(dam)}', True, team_to_color[projectile.team])
+                dam_dest = projectile.x, projectile.y
+                dam_text_timelive = FPS
         virtualscreen.fill((255, 255, 255))
         screen.fill((255, 255, 255))
         player.mists.draw(virtualscreen)
@@ -302,6 +315,9 @@ while running:
         all_projectiles.draw(virtualscreen)
         all_walls.draw(virtualscreen)
         all_selected_map.draw(virtualscreen)
+        if dam_text_timelive > 0:
+            virtualscreen.blit(dam_text, dam_dest)
+            dam_text_timelive -= 1
         dest = (-player.place[0], -player.place[1] )
         screen.blit(virtualscreen, dest)
         all_buttons_game.draw(screen)
