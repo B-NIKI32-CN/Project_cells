@@ -74,6 +74,31 @@ def mist_doting(A, group): # прибавляю к позициям матриц
         A[limites[1][0]:limites[1][1]+1, limites[0][0]:limites[0][1]+1] += dist_in2
     return A
     # подробно не описывал, все равно ты нумпай не будешь смотреть по-моему
+def mist_doting3000(group): # прибавляю к позициям матрицы A 1 которые видит танк (матрица A имеет размер карты)
+    A = np.zeros((map_len_cells, map_len_cells), np.int64)
+    for tank in group:
+        radius = tank.vis
+        radius_in2 = radius**2
+        center = tank.place
+        start_x = 0
+        start_y = 0
+        end_x = 2*radius + 1
+        end_y = 2*radius + 1
+        limites = [[center[0]-radius,center[0]+radius], [center[1]-radius,center[1]+radius]] # просто для оптимизации и без того быстрого numpy (x, y)
+        if limites[0][0] < 0:                                                                 # это просто ограничение области
+            limites[0][0] = 0
+            start_x = radius - center[0]
+        if limites[1][0] < 0:
+            limites[1][0] = 0
+            start_y = radius - center[1]
+        if limites[0][1] >= map_len_cells:
+            limites[0][1] = map_len_cells-1
+            end_x = map_len_cells - 1 - center[0] - radius
+        if limites[1][1] >= map_len_cells:
+            limites[1][1] = map_len_cells-1
+            end_y = map_len_cells - 1 - center[1] - radius
+        A[limites[1][0]:limites[1][1]+1, limites[0][0]:limites[0][1]+1] += tank.mist_matrix[start_y:end_y,start_x:end_x]
+    return A
 
 def cell_distribution(n, team, group): # функция присвоения клетки команде, нужна для начисления exp в конце хода (равно количеству "захваченных клеток")
     matrixs = [0] * n
