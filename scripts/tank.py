@@ -59,6 +59,12 @@ class Tank(pg.sprite.Sprite):
                      (self.delta, 3/4*self.H + self.ttx[-1]/12*self.H), width=cell_width - 2)
         pg.draw.line(self.image, (0, 0, 0), (self.W/2, 3/4*self.H - self.ttx[-1]/12*self.H),
                      (self.W/2, 3/4*self.H + self.ttx[-1]/12*self.H), width=cell_width - 2)
+        pg.draw.line(self.image, team_to_anticolor[self.team], (0, 0), (self.W, 0), width=cell_width)
+        pg.draw.line(self.image, team_to_anticolor[self.team], (0 + self.W, 0), (self.W, self.H),
+                     width=cell_width + 2)
+        pg.draw.line(self.image, team_to_anticolor[self.team], (self.W, self.H), (0, self.H),
+                     width=cell_width + 2)
+        pg.draw.line(self.image, team_to_anticolor[self.team], (0, self.H), (0, 0), width=cell_width)
         self.imageOrig = self.image
 
         self.vis = self.ttx[0]
@@ -171,7 +177,8 @@ class Tank(pg.sprite.Sprite):
             arm /= abs(sin(bullet_angle))
         else:
             arm /= abs(cos(bullet_angle))
-        self.hp -= damage(arm, bullet_pen, bullet_dam)
+        dam = damage(arm, bullet_pen, bullet_dam)
+        self.hp -= dam
         if self.hp <= 0:
             self.map[self.place[1], self.place[0]] = 0
             self.kill()
@@ -180,17 +187,18 @@ class Tank(pg.sprite.Sprite):
                                                                self.player.tanks)
             mist_builder(self.player.mist_matrix, self.Mist, self.player.mists)
             self.player.mist_matrix[self.player.base.sprites()[0].place[1], self.player.base.sprites()[0].place[0]] = 1
+        return dam
 
     def draw(self, surface, team):
         surface.blit(self.image, (self.x, self.y))
         color = team_to_anticolor[self.team]
         hp_draw = font16.render(f"{int(self.hp)}", True, color)
         hp_draw.set_alpha(200)
-        surface.blit(hp_draw, (self.x+self.delta/2, self.y+self.delta/2))
+        surface.blit(hp_draw, (self.x+self.delta/2+self.W*0.1, self.y+self.delta/2))
         if self.team == team:
             reload_draw = font16.render(f"|{self.rel_dinamic}", True, color)
             reload_draw.set_alpha(200)
-            surface.blit(reload_draw, (self.x+self.W*0.8, self.y + self.delta / 2))
+            surface.blit(reload_draw, (self.x+self.W*0.7, self.y + self.delta / 2))
     def update(self):
         self.m = [self.ttx[5], self.ttx[6], self.ttx[7]]
         if self.rel_dinamic >= 1:

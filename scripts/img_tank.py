@@ -54,3 +54,21 @@ class ImgTank(pg.sprite.Sprite):
         pg.draw.line(self.image, (0, 0, 0), (self.W/2, 3/4*self.H - self.ttx[-1]/12*self.H),
                      (self.W/2, 3/4*self.H + self.ttx[-1]/12*self.H), width=cell_width - 2)
         self.imageOrig = self.image
+
+        self.vis = self.ttx[0]
+        self.hp = self.ttx[1]  # self.ttx[1]
+        self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
+        self.m = [self.ttx[5], 37, self.ttx[7]]  # self.ttx[5]
+        self.dam = self.ttx[8]
+        self.pen = self.ttx[9]
+        self.rel = self.ttx[10]
+        self.dist = self.ttx[11]
+        self.cost = self.ttx[12]
+        self.exp = self.ttx[13]
+        self.rel_dinamic = 0
+
+        text_cost = font16.render(f"{self.cost}", True, team_to_anticolor[self.team])
+        text_exp = font16.render(f"{self.exp}", True, team_to_anticolor[self.team])
+
+        self.image.blit(text_cost, (self.W*0.1, self.H*0.1))
+        self.image.blit(text_exp, (self.W*0.1,self.H/4+self.H*0.1))

@@ -31,7 +31,7 @@ class Projectile(pg.sprite.Sprite):
                 dist = dist_linpoint(w.rect.center, self.solve, self.equals)
                 if w.rect.collidepoint(self.rect.center) or dist < len_cell*(2**0.5 / 2):
                     self.die = 1
-                    return
+                    return 0
         tank = pg.sprite.spritecollide(self, all_tanks, False)
         if len(tank) != 0:
             for t in tank:
@@ -43,9 +43,9 @@ class Projectile(pg.sprite.Sprite):
                         dist_point = dist_linpoint(point, self.solve, self.equals)
                         if dist_point > 1e-10:
                             point = t.rect.centerx - dist * cos(angle), t.rect.centery - dist * sin(angle)
-                        t.get_bullet(self.angle, point, self.dam, self.pen)
+                        dam = t.get_bullet(self.angle, point, self.dam, self.pen)
                         self.die = 1
-                        return
+                        return dam
         base = pg.sprite.spritecollide(self, all_bases, False)
         if len(base) !=0:
             for b in base:
@@ -53,7 +53,8 @@ class Projectile(pg.sprite.Sprite):
                 if b.rect.collidepoint(self.rect.center) or dist < len_cell*(2**0.5 / 2):
                     self.die = 1
                     base[0].damage(self.dam)
-                    return
+                    return self.dam
+        return 0
 
     def update(self, all_walls, all_tanks, team_tanks, all_bases):
         if self.die == 1 or self.dist <= 0:
@@ -63,4 +64,6 @@ class Projectile(pg.sprite.Sprite):
         self.dist -= (self.dx**2 + self.dy**2)**0.5
         self.rect.center = (self.x, self.y)
         if self.die == 0:
-            self.proj_collide(all_walls, all_tanks, team_tanks, all_bases)
+            dam = self.proj_collide(all_walls, all_tanks, team_tanks, all_bases)
+            return dam
+        return 0
