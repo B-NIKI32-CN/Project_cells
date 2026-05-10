@@ -1,4 +1,6 @@
 # хуй пися члеен
+from urllib.parse import to_bytes
+
 import pygame as pg
 import scripts
 import maps
@@ -9,8 +11,6 @@ pg.init()
 pg.mixer.init()
 
 screen = pg.display.set_mode((SW, SH), vsync=1)
-# SW = screen.get_width()
-# SH = screen.get_height()
 
 text_start = font48.render("Proceed", True, (0, 0, 0))
 
@@ -32,29 +32,29 @@ tanks_for_win = pg.sprite.Group() # некит переименуй
 virtual_screen_size = map_len_cells * len_cell # было vs (удали коммент если всё ок)
 virtual_screen = pg.Surface((virtual_screen_size, virtual_screen_size)) # было virtualscreen (удали коммент если всё ок)
 
-select_cell = None
+# select_cell = None
 players = []
 
 running = True
 scene = "menu"
 
-map_not_builded = True
-menu_not_builded = True
-buttons_flag_game = True
-selected_tank = False # было sel_tank (коммент можно удалить)
-players_flag = True # некит переименуй
-tank_take = False # некит переименуй
+to_build_map = True
+to_build_menu = True
+to_build_game_buttons = True
+selected_tank = False
+to_regist_players = True # некит переименуй
+taken_tank = False # некит переименуй
 ready_to_spawn_tank = False
 
 market_window_is_open = False # было open_win_market (коммент можно удалить)
 
 keys = [0] * 100 # зачем тебе вручную делать список нажатых клавиш если есть pg.key.get_pressed()
 keys_clicked = [0] * 100
-turn = 0 # некит переименуй
-QNT_PLAYERS = 2 # было n (комментарий удалить)
-cnt_rounds = 0 # было len_game_count (комментарий удалить)
-cur_player = None # было player (комментарий удалить)
-damage_text_timelive = 0 # было dam_text_timelive (комментарий удалить) # некит у меня есть вопросы
+move_player_qnt = 0 # некит переименуй
+QNT_PLAYERS = 2
+cnt_rounds = 0
+# cur_player = None # было player (комментарий удалить)
+damage_text_timelive = 0 #некит у меня есть вопросы
 all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
             pg.K_ESCAPE, pg.K_q)
@@ -94,43 +94,43 @@ while running:
                 keys[37] = 0
 
     if scene == "menu":
-        if menu_not_builded:
+        if to_build_menu:
             b_start = scripts.button.Button(SW/2, SH/2,200, 100, (0,255,255))
             b_start.edges((255,128,0), 5)
             all_buttons_menu.add(b_start)
-            menu_not_builded = False
+            to_build_menu = False
         screen.fill((255,255,255))
         all_buttons_menu.draw(screen)
         screen.blit(text_start, (SW/2-75, SH/2-20))
         if keys_clicked[32] == 1 and b_start.rect.collidepoint(r_m_pos):
             keys_clicked[32] = 0
             scene = "game"
-            menu_not_builded = True
+            to_build_menu = True
             all_buttons_menu.empty()
 
     elif scene == "game":
-        if map_not_builded:
+        if to_build_map:
             map = maps.squares.map.copy()
             scripts.functions.builder(map, scripts.cell.Cell, 0, all_cells)
             scripts.functions.builder(map, scripts.wall.Wall, 1, all_walls)
-            map_not_builded = False
+            to_build_map = False
 
-        if buttons_flag_game:
+        if to_build_game_buttons:
             b_turn = scripts.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
             b_turn.edges((255,128,0), 5)
             canvas0 = scripts.surface.Surface(SW/2, SH*3/80, SW*15/64, SH*8/80, (128,128,128), 1, select_color,  int(SW*2/1280))
             canvas1 = scripts.surface.Surface(SW*15/16, SH*13.5/16, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280))
             canvas_for_hp = scripts.surface.Surface(SW/64, SH/2, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280))
             all_buttons_game.add(b_turn)
-            buttons_flag_game = False
+            to_build_game_buttons = False
 
-        if players_flag:   # регистрация игроков
+        if to_regist_players:   # регистрация игроков
             for i in range(QNT_PLAYERS):
                 players.append(scripts.player.Player(i, res0))
             for cur_player in players:
                 scripts.functions.mist_builder(np.zeros((map_len_cells, map_len_cells)), scripts.mist.Mist, cur_player.mists)
-            cur_player = players[turn]
-            players_flag = False
+            cur_player = players[move_player_qnt]
+            to_regist_players = False
 
         # координаты  мыщки сдвинутые на dest (смещение камеры игрока) снизу написал все
         dest_mouse_pos = (cur_player.place[0] + r_m_pos[0], cur_player.place[1] + r_m_pos[1])   # положение мыши на карте
@@ -174,15 +174,15 @@ while running:
                     if tank.rect.collidepoint(r_m_pos):
                         tanks_win.remove(all_selected_win)
                         all_selected_win.empty()
-                        tank_take = tank
+                        taken_tank = tank
                         select_place = scripts.selectedcell.Selectedcell(tank.x, tank.y)
                         all_selected_win.add(select_place)
                         b_take.edges((0, 128, 0), 5)
                         b_throw.edges((128, 128, 0), 5)
                     tanks_win.add(all_selected_win)
-                if b_take.rect.collidepoint(r_m_pos) and tank_take != False:
+                if b_take.rect.collidepoint(r_m_pos) and taken_tank != False:
                     b_take.edges((0, 255, 255), 5)
-                    ready_to_spawn_tank = tank_take
+                    ready_to_spawn_tank = taken_tank
                 if b_throw.rect.collidepoint(r_m_pos) and ready_to_spawn_tank != False:
                     b_throw.edges((0, 255, 255), 5)
                     b_take.edges((0, 128, 0), 5)
@@ -190,7 +190,7 @@ while running:
                 if ext.rect.collidepoint(r_m_pos):
                     tanks_win.empty()
                     all_selected_win.empty()
-                    tank_take = False
+                    taken_tank = False
                     market_window_is_open = False
 
         if keys_clicked[32] == 1 and not market_window_is_open and ready_to_spawn_tank != False and cur_player.base != 0: # установка выбранного танка
@@ -216,11 +216,11 @@ while running:
                 cur_player.exp += scripts.functions.cell_distribution(QNT_PLAYERS, cur_player.n, all_tanks)
                 cur_player.res += scripts.functions.get_res(len(cur_player.tanks.sprites()))
             cur_player.tanks.update()
-            turn += 1
-            if turn >= QNT_PLAYERS:
-                turn = 0
-            cur_player = players[turn]
-            tank_take = False
+            move_player_qnt += 1
+            if move_player_qnt >= QNT_PLAYERS:
+                move_player_qnt = 0
+            cur_player = players[move_player_qnt]
+            taken_tank = False
             ready_to_spawn_tank = False
             selected_tank = False
             tanks_win.empty()
@@ -279,14 +279,14 @@ while running:
             all_tanks.empty()
             all_bases.empty()
             all_buttons_menu.empty()
-            map_not_builded = True
-            players_flag = True
-            buttons_flag_game = True
+            to_build_map = True
+            to_regist_players = True
+            to_build_game_buttons = True
             selected_tank = False
-            tank_take = False
+            taken_tank = False
             ready_to_spawn_tank = False
             players = []
-            turn = 0
+            move_player_qnt = 0
             cnt_rounds = 0
 
         canvas_hp = scripts.surface.Surface(SW/64, (SH*(1/4+5/800)) + SH*(1/4-5/800)*(cur_player.hp/base_hp), SW/32 - SW*10/1280, (SH/2 - SW*10/1280)*(cur_player.hp/base_hp),
