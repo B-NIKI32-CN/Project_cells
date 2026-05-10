@@ -20,14 +20,14 @@ clock = pg.time.Clock()
 all_walls = pg.sprite.Group()
 all_cells = pg.sprite.Group()
 all_selected_map = pg.sprite.Group()
-all_selected_win = pg.sprite.Group() # некит переименуй
+all_selected_in_window = pg.sprite.Group() # некит переименуй
 all_tanks = pg.sprite.Group()
 all_bases = pg.sprite.Group()
 all_buttons_menu = pg.sprite.Group()
 all_buttons_game = pg.sprite.Group()
 all_projectiles = pg.sprite.Group()
-tanks_win = pg.sprite.Group() # некит переименуй
-tanks_for_win = pg.sprite.Group() # некит переименуй
+market_window = pg.sprite.Group() # некит переименуй   #+
+tanks_ing_for_window = pg.sprite.Group() # некит переименуй   #+
 
 virtual_screen_size = map_len_cells * len_cell # было vs (удали коммент если всё ок)
 virtual_screen = pg.Surface((virtual_screen_size, virtual_screen_size)) # было virtualscreen (удали коммент если всё ок)
@@ -41,18 +41,17 @@ to_build_map = True
 to_build_menu = True
 to_build_game_buttons = True
 selected_tank = False
-to_regist_players = True # некит переименуй
-taken_tank = False # некит переименуй
+to_regist_players = True # некит переименуй   #+
+taken_tank = False # некит переименуй   #+
 ready_to_spawn_tank = False
 
 market_window_is_open = False # было open_win_market (коммент можно удалить)
 
 keys = [0] * 100 # зачем тебе вручную делать список нажатых клавиш если есть pg.key.get_pressed()
 keys_clicked = [0] * 100
-move_player_qnt = 0 # некит переименуй
+moving_player_qnt = 0 # некит переименуй
 QNT_PLAYERS = 2
 cnt_rounds = 0
-# cur_player = None # было player (комментарий удалить)
 damage_text_timelive = 0 #некит у меня есть вопросы
 all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
@@ -128,14 +127,14 @@ while running:
                 players.append(scripts.player.Player(i, res0))
             for cur_player in players:
                 scripts.functions.mist_builder(np.zeros((map_len_cells, map_len_cells)), scripts.mist.Mist, cur_player.mists)
-            cur_player = players[move_player_qnt]
+            cur_player = players[moving_player_qnt]
             to_regist_players = False
 
         # координаты  мыщки сдвинутые на dest (смещение камеры игрока) снизу написал все
         dest_mouse_pos = (cur_player.place[0] + r_m_pos[0], cur_player.place[1] + r_m_pos[1])   # положение мыши на карте
         cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
 
-        if cur_player.base == 0and (not b_turn.rect.collidepoint(r_m_pos)): # установка базы игрока
+        if cur_player.base == 0 and not b_turn.rect.collidepoint(r_m_pos): # установка базы игрока
             if (keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
                     and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 keys_clicked[32] = 0
@@ -151,45 +150,45 @@ while running:
             keys_clicked[32] = 0
             tank_menu =  scripts.button.Button(SW/2, SH/2, SW/2, SH/2, (66,66,66))
             tank_menu.edges((255,128,0), 10)
-            tanks_win.add(tank_menu)
+            market_window.add(tank_menu)
             for j, tank_for_menu in enumerate(alpha):
                 x = j%3
                 y = j//3
-                tanks_for_win.add(scripts.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
-                                                           SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, cur_player.n, 0, tank_for_menu))
-            tanks_win.add(tanks_for_win)
+                tanks_ing_for_window.add(scripts.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
+                                                                  SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, cur_player.n, 0, tank_for_menu))
+            market_window.add(tanks_ing_for_window)
             ext = scripts.button.Button(SW*3/4-SW/32, SH/4+SH/32, SW/16, SH/16, (200,0,0))
             ext.edges((0,255,255), 5)
             b_take = scripts.button.Button(SW*3/4-SW/32, SH*3/4+SH/32, SW/16, SH/16, (128,255,128))
             b_take.edges((0,128,0), 5)
             b_throw = scripts.button.Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (255,255,128))
             b_throw.edges((128,128,0), 5)
-            tanks_win.add(ext, b_take, b_throw)
+            market_window.add(ext, b_take, b_throw)
             market_window_is_open = True
         if market_window_is_open: # выбор танков в соответственном меню
             if keys_clicked[32] == 1:
                 keys_clicked[32] = 0
-                for tank in tanks_for_win:
+                for tank in tanks_ing_for_window:
                     if tank.rect.collidepoint(r_m_pos):
-                        tanks_win.remove(all_selected_win)
-                        all_selected_win.empty()
+                        market_window.remove(all_selected_in_window)
+                        all_selected_in_window.empty()
                         taken_tank = tank
                         select_place = scripts.selectedcell.Selectedcell(tank.x, tank.y)
-                        all_selected_win.add(select_place)
+                        all_selected_in_window.add(select_place)
                         b_take.edges((0, 128, 0), 5)
                         b_throw.edges((128, 128, 0), 5)
-                    tanks_win.add(all_selected_win)
+                    market_window.add(all_selected_in_window)
                 if b_take.rect.collidepoint(r_m_pos) and taken_tank != False:
                     b_take.edges((0, 255, 255), 5)
                     b_throw.edges((128, 128, 0), 5)
-                    ready_to_spawn_tank = tank_take
+                    ready_to_spawn_tank = taken_tank
                 if b_throw.rect.collidepoint(r_m_pos) and ready_to_spawn_tank != False:
                     b_throw.edges((0, 255, 255), 5)
                     b_take.edges((0, 128, 0), 5)
                     ready_to_spawn_tank = False
                 if ext.rect.collidepoint(r_m_pos):
-                    tanks_win.empty()
-                    all_selected_win.empty()
+                    market_window.empty()
+                    all_selected_in_window.empty()
                     taken_tank = False
                     market_window_is_open = False
 
@@ -210,20 +209,20 @@ while running:
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
                 ready_to_spawn_tank = False
 
-        if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and player.base != 0: # смена хода
+        if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0: # смена хода
             keys_clicked[32] = 0
             if cnt_rounds//QNT_PLAYERS != 0:
                 cur_player.exp += scripts.functions.cell_distribution(QNT_PLAYERS, cur_player.n, all_tanks)
                 cur_player.res += scripts.functions.get_res(len(cur_player.tanks.sprites()))
             cur_player.tanks.update()
-            move_player_qnt += 1
-            if move_player_qnt >= QNT_PLAYERS:
-                move_player_qnt = 0
-            cur_player = players[move_player_qnt]
+            moving_player_qnt += 1
+            if moving_player_qnt >= QNT_PLAYERS:
+                moving_player_qnt = 0
+            cur_player = players[moving_player_qnt]
             taken_tank = False
             ready_to_spawn_tank = False
             selected_tank = False
-            tanks_win.empty()
+            market_window.empty()
             all_selected_map.empty()
             cnt_rounds += 1
 
@@ -286,7 +285,7 @@ while running:
             taken_tank = False
             ready_to_spawn_tank = False
             players = []
-            move_player_qnt = 0
+            moving_player_qnt = 0
             cnt_rounds = 0
 
         canvas_hp = scripts.surface.Surface(SW/64, (SH*(1/4+5/800)) + SH*(1/4-5/800)*(cur_player.hp/base_hp), SW/32 - SW*10/1280, (SH/2 - SW*10/1280)*(cur_player.hp/base_hp),
@@ -322,7 +321,7 @@ while running:
         dest = (-cur_player.place[0], -cur_player.place[1] )
         screen.blit(virtual_screen, dest)
         all_buttons_game.draw(screen)
-        tanks_win.draw(screen)
+        market_window.draw(screen)
         canvas0.draw(screen)
         canvas1.draw(screen)
         canvas_for_hp.draw(screen)
