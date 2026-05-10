@@ -26,8 +26,8 @@ all_bases = pg.sprite.Group()
 all_buttons_menu = pg.sprite.Group()
 all_buttons_game = pg.sprite.Group()
 all_projectiles = pg.sprite.Group()
-market_window = pg.sprite.Group() # некит переименуй   #+
-tanks_ing_for_window = pg.sprite.Group() # некит переименуй   #+
+market_window = pg.sprite.Group() # некит переименуй #+ # некит я не понял че это напиши коммент
+tanks_ing_for_window = pg.sprite.Group() # некит переименуй #+ # тут тоже но ещё я не понял че такое ing
 
 virtual_screen_size = map_len_cells * len_cell # было vs (удали коммент если всё ок)
 virtual_screen = pg.Surface((virtual_screen_size, virtual_screen_size)) # было virtualscreen (удали коммент если всё ок)
@@ -40,19 +40,19 @@ scene = "menu"
 to_build_map = True
 to_build_menu = True
 to_build_game_buttons = True
-selected_tank = False
-to_regist_players = True # некит переименуй   #+
-taken_tank = False # некит переименуй   #+
-ready_to_spawn_tank = False
+selected_tank = None
+players_registered = False
+taken_tank = None
+tank_ready_to_spawn = None # я сначала подумал что это булевая переменная,если есть идеи как переименовать то действуй (после прочтения удали коммент)
 
 market_window_is_open = False # было open_win_market (коммент можно удалить)
 
 keys = [0] * 100 # зачем тебе вручную делать список нажатых клавиш если есть pg.key.get_pressed()
 keys_clicked = [0] * 100
-moving_player_qnt = 0 # некит переименуй
+active_player = 0
 QNT_PLAYERS = 2
 cnt_rounds = 0
-damage_text_timelive = 0 #некит у меня есть вопросы
+damage_text_timelive = 0
 all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
             pg.K_ESCAPE, pg.K_q)
@@ -122,13 +122,13 @@ while running:
             all_buttons_game.add(b_turn)
             to_build_game_buttons = False
 
-        if to_regist_players:   # регистрация игроков
+        if not players_registered:   # регистрация игроков
             for i in range(QNT_PLAYERS):
                 players.append(scripts.player.Player(i, res0))
             for cur_player in players:
                 scripts.functions.mist_builder(np.zeros((map_len_cells, map_len_cells)), scripts.mist.Mist, cur_player.mists)
-            cur_player = players[moving_player_qnt]
-            to_regist_players = False
+            cur_player = players[active_player]
+            players_registered = True
 
         # координаты  мыщки сдвинутые на dest (смещение камеры игрока) снизу написал все
         dest_mouse_pos = (cur_player.place[0] + r_m_pos[0], cur_player.place[1] + r_m_pos[1])   # положение мыши на карте
@@ -178,36 +178,36 @@ while running:
                         b_take.edges((0, 128, 0), 5)
                         b_throw.edges((128, 128, 0), 5)
                     market_window.add(all_selected_in_window)
-                if b_take.rect.collidepoint(r_m_pos) and taken_tank != False:
+                if b_take.rect.collidepoint(r_m_pos) and taken_tank is not None:
                     b_take.edges((0, 255, 255), 5)
                     b_throw.edges((128, 128, 0), 5)
-                    ready_to_spawn_tank = taken_tank
-                if b_throw.rect.collidepoint(r_m_pos) and ready_to_spawn_tank != False:
+                    tank_ready_to_spawn = taken_tank
+                if b_throw.rect.collidepoint(r_m_pos) and tank_ready_to_spawn is not None:
                     b_throw.edges((0, 255, 255), 5)
                     b_take.edges((0, 128, 0), 5)
-                    ready_to_spawn_tank = False
+                    tank_ready_to_spawn = None
                 if ext.rect.collidepoint(r_m_pos):
                     market_window.empty()
                     all_selected_in_window.empty()
-                    taken_tank = False
+                    taken_tank = None
                     market_window_is_open = False
 
-        if keys_clicked[32] == 1 and not market_window_is_open and ready_to_spawn_tank != False and cur_player.base != 0: # установка выбранного танка
+        if keys_clicked[32] == 1 and not market_window_is_open and tank_ready_to_spawn is not None and cur_player.base != 0: # установка выбранного танка
             keys_clicked[32] = 0
             dist_spawn0 = ((int(cur_player.base.sprites()[0].x) / len_cell - cell_mouse_pos[0]) ** 2
                            + (int(cur_player.base.sprites()[0].y) / len_cell - cell_mouse_pos[1]) ** 2) ** 0.5
-            if (dist_spawn0 <= dist_spawn and cur_player.res >= ready_to_spawn_tank.ttx[12]
-                    and cur_player.exp >= ready_to_spawn_tank.ttx[13] and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
+            if (dist_spawn0 <= dist_spawn and cur_player.res >= tank_ready_to_spawn.ttx[12]
+                    and cur_player.exp >= tank_ready_to_spawn.ttx[13] and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 scripts.functions.spawn_team_obj(
                     map, scripts.tank.Tank, 2, all_tanks, cur_player.tanks,
-                    cell_mouse_pos, cur_player.n, 1, ready_to_spawn_tank.ttx,
+                    cell_mouse_pos, cur_player.n, 1, tank_ready_to_spawn.ttx,
                     cur_player, scripts.mist.Mist, map)
-                cur_player.res -= ready_to_spawn_tank.ttx[-4]
+                cur_player.res -= tank_ready_to_spawn.ttx[-4]
                 cur_player.mists.empty()
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
                 scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
-                ready_to_spawn_tank = False
+                tank_ready_to_spawn = None
 
         if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0: # смена хода
             keys_clicked[32] = 0
@@ -215,20 +215,19 @@ while running:
                 cur_player.exp += scripts.functions.cell_distribution(QNT_PLAYERS, cur_player.n, all_tanks)
                 cur_player.res += scripts.functions.get_res(len(cur_player.tanks.sprites()))
             cur_player.tanks.update()
-            moving_player_qnt += 1
-            if moving_player_qnt >= QNT_PLAYERS:
-                moving_player_qnt = 0
-            cur_player = players[moving_player_qnt]
-            taken_tank = False
-            ready_to_spawn_tank = False
-            selected_tank = False
+            active_player += 1
+            active_player %= QNT_PLAYERS
+            cur_player = players[active_player]
+            taken_tank = None
+            tank_ready_to_spawn = None
+            selected_tank = None
             market_window.empty()
             all_selected_map.empty()
             cnt_rounds += 1
 
         if keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_window_is_open: # выбор клетки
             keys_clicked[32] = 0
-            selected_tank = False
+            selected_tank = None
             all_selected_map.empty()
             select_cell = scripts.selectedcell.Selectedcell(len_cell * cell_mouse_pos[0], len_cell * cell_mouse_pos[1])
             all_selected_map.add(select_cell)
@@ -239,7 +238,7 @@ while running:
                             selected_tank = tank
                         break
 
-        if selected_tank: # управление танком # ваня можешь переписать != False # Готово
+        if selected_tank is not None: # управление танком
             selected_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], select_cell)
             if keys_clicked[0] or keys_clicked[1] or keys_clicked[2] or keys_clicked[3]:
                 cur_player.mists.empty()
@@ -256,7 +255,7 @@ while running:
             if keys[12] == 1:
                 map[selected_tank.place[1], selected_tank.place[0]] = 0
                 selected_tank.kill()
-                selected_tank = False
+                selected_tank = None
                 cur_player.mists.empty()
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
                 scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
@@ -279,13 +278,13 @@ while running:
             all_bases.empty()
             all_buttons_menu.empty()
             to_build_map = True
-            to_regist_players = True
+            players_registered = False
             to_build_game_buttons = True
-            selected_tank = False
-            taken_tank = False
-            ready_to_spawn_tank = False
+            selected_tank = None
+            taken_tank = None
+            tank_ready_to_spawn = None
             players = []
-            moving_player_qnt = 0
+            active_player = 0
             cnt_rounds = 0
 
         canvas_hp = scripts.surface.Surface(SW/64, (SH*(1/4+5/800)) + SH*(1/4-5/800)*(cur_player.hp/base_hp), SW/32 - SW*10/1280, (SH/2 - SW*10/1280)*(cur_player.hp/base_hp),
