@@ -7,7 +7,7 @@ from ttx import *
 pg.init()
 pg.mixer.init()
 
-screen = pg.display.set_mode((SW, SH), vsync=1)
+screen = pg.display.set_mode((SW, SH),pg.FULLSCREEN, vsync=1)
 # SW = screen.get_width()
 # SH = screen.get_height()
 
@@ -31,7 +31,6 @@ tanks_for_win = pg.sprite.Group()
 vs = map_len_cells * len_cell
 virtualscreen = pg.Surface((vs, vs))
 
-select_cell = 0
 players = []
 
 running = True
@@ -52,7 +51,6 @@ keys_clicked = [0] * 100
 turn = 0
 n = 2
 len_game_count = 0
-player = 0
 dam_text_timelive = 0
 all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
@@ -135,7 +133,7 @@ while running:
         dest_mouse_pos = (player.place[0] + r_m_pos[0], player.place[1] + r_m_pos[1])   # положение мыши на карте
         cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
 
-        if player.base == 0: # установка базы игрока
+        if player.base == 0 and (not b_turn.rect.collidepoint(r_m_pos)): # установка базы игрока
             if (keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
                     and map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 keys_clicked[32] = 0
@@ -181,6 +179,7 @@ while running:
                     tanks_win.add(all_selected_win)
                 if b_take.rect.collidepoint(r_m_pos) and tank_take != False:
                     b_take.edges((0, 255, 255), 5)
+                    b_throw.edges((128, 128, 0), 5)
                     ready_to_spawn_tank = tank_take
                 if b_throw.rect.collidepoint(r_m_pos) and ready_to_spawn_tank != False:
                     b_throw.edges((0, 255, 255), 5)
@@ -209,7 +208,7 @@ while running:
                 player.mist_matrix[player.base.sprites()[0].place[1], player.base.sprites()[0].place[0]] = 1
                 ready_to_spawn_tank = False
 
-        if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos): # смена хода
+        if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and player.base != 0: # смена хода
             keys_clicked[32] = 0
             if len_game_count//n != 0:
                 player.exp += scripts.functions.cell_distribution(n, player.n, all_tanks)
@@ -292,14 +291,13 @@ while running:
                                             (128+(team_to_color[player.n][0]-128)*(player.hp/base_hp),
                                              128+(team_to_color[player.n][1]-128)*(player.hp/base_hp),
                                              128+(team_to_color[player.n][2]-128)*(player.hp/base_hp)), 0, 0, 0)
-        text_turns = font48.render(f'Turn: {len_game_count//n + 1}', True, team_to_color[player.n])
+        text_turns = font48.render(f"Turn: {len_game_count//n + 1}", True, team_to_color[player.n])
         text_res = font48.render(f"Resources : {player.res}", True, team_to_color[player.n])
         text_exp = font48.render(f"Сapture : {player.exp}", True, team_to_color[player.n])
-        # all_projectiles.update(all_walls, all_tanks, player.tanks, all_bases)
         for projectile in all_projectiles:
             dam = projectile.update(all_walls, all_tanks, player.tanks, all_bases)
             if dam != 0:
-                dam_text = font32.render(f'{int(dam)}', True, team_to_color[projectile.team])
+                dam_text = font32.render(f"{int(dam)}", True, team_to_color[projectile.team])
                 dam_dest = projectile.x, projectile.y
                 dam_text_timelive = FPS
         virtualscreen.fill((255, 255, 255))
