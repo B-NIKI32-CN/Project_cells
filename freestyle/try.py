@@ -19,9 +19,4 @@ from settings import team_to_color
 # i, j = np.indices((10,10))
 # print(i, 'i')
 # print(j, 'j')
-# print(team_to_color)
-# def f(n):
-#     if n < 2:
-#         return 1
-#     return n*f(n-1)
-# print(f(5))
+print(team_to_color)
