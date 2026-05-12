@@ -26,7 +26,7 @@ map_len_cells = 64
 # это так же в свои файлы лучше убрать
 
 projectile_size = 2
-projectile_speed = 30
+projectile_speed = 10
 
 select_color = (0,255,255) # не пон
 

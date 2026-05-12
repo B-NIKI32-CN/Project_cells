@@ -23,6 +23,7 @@ class Projectile(pg.sprite.Sprite):
         pg.draw.line(self.image, (255,0,0), (abs(self.dx/2)+self.dx/2, abs(self.dy/2)+self.dy/2), (abs(self.dx/2)-self.dx/2, abs(self.dy/2)-self.dy/2), width=projectile_size)
         self.solve, self.equals = calclin((self.x,self.y),(self.x + self.dx, self.y + self.dy))
         self.die = 0
+        self.dmove = (self.dx**2 + self.dy**2)**0.5
 
     def proj_collide(self, all_walls, all_tanks, team_tanks, all_bases):
         wall = pg.sprite.spritecollide(self, all_walls, False)
@@ -61,7 +62,10 @@ class Projectile(pg.sprite.Sprite):
             self.kill()
         self.x += self.dx
         self.y += self.dy
-        self.dist -= (self.dx**2 + self.dy**2)**0.5
+        self.dist -= self.dmove
+        if self.dist < 0:
+            self.x += self.dist/self.dmove * self.dx
+            self.y += self.dist/self.dmove * self.dy
         self.rect.center = (self.x, self.y)
         if self.die == 0:
             dam = self.proj_collide(all_walls, all_tanks, team_tanks, all_bases)

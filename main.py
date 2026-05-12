@@ -30,7 +30,7 @@ market_window = pg.sprite.Group() # некит переименуй   #+
 tanks_ing_for_window = pg.sprite.Group() # некит переименуй   #+
 
 virtual_screen_size = map_len_cells * len_cell # было vs (удали коммент если всё ок)
-virtual_screen = pg.Surface((virtual_screen_size, virtual_screen_size)) # было virtualscreen (удали коммент если всё ок)
+virtual_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA) # было virtualscreen (удали коммент если всё ок)
 
 players = []
 
@@ -44,6 +44,7 @@ selected_tank = False
 to_regist_players = True # некит переименуй   #+
 taken_tank = False # некит переименуй   #+
 ready_to_spawn_tank = False
+drop_the_curtain = False
 
 market_window_is_open = False # было open_win_market (коммент можно удалить)
 
@@ -111,7 +112,15 @@ while running:
             map = maps.squares.map.copy()
             scripts.functions.builder(map, scripts.cell.Cell, 0, all_cells)
             scripts.functions.builder(map, scripts.wall.Wall, 1, all_walls)
+            map_screen = pg.Surface((virtual_screen_size, virtual_screen_size))
+            map_screen.fill((255, 255, 255))
+            all_cells.draw(map_screen)
+            all_walls.draw(map_screen)
             to_build_map = False
+
+        if drop_the_curtain == True and keys_clicked[32] == 1:
+            keys_clicked[32] = 0
+            drop_the_curtain = False
 
         if to_build_game_buttons:
             b_turn = scripts.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
@@ -128,6 +137,13 @@ while running:
             for cur_player in players:
                 scripts.functions.mist_builder(np.zeros((map_len_cells, map_len_cells)), scripts.mist.Mist, cur_player.mists)
             cur_player = players[moving_player_qnt]
+
+            map_mist_screen = map_screen.copy()
+            mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
+            cur_player.mists.draw(mist_screen)
+            mist_screen.set_alpha(128)
+            map_mist_screen.blit(mist_screen, (0, 0))
+
             to_regist_players = False
 
         # координаты  мыщки сдвинутые на dest (смещение камеры игрока) снизу написал все
@@ -144,7 +160,6 @@ while running:
                     )
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1 # делаю видимым положение в которое только что поставил базу
                 cur_player.hp = cur_player.base.sprites()[0].hp
-
 
         if keys_clicked[32] == 1 and cur_player.base != 0 and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0] and cur_player.base.sprites()[0].place[1] == cell_mouse_pos[1]: # меню выбора танков
             keys_clicked[32] = 0
@@ -207,6 +222,13 @@ while running:
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
                 scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
+
+                map_mist_screen = map_screen.copy()
+                mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
+                cur_player.mists.draw(mist_screen)
+                mist_screen.set_alpha(128)
+                map_mist_screen.blit(mist_screen, (0, 0))
+
                 ready_to_spawn_tank = False
 
         if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0: # смена хода
@@ -222,9 +244,16 @@ while running:
             taken_tank = False
             ready_to_spawn_tank = False
             selected_tank = False
+            drop_the_curtain = True
             market_window.empty()
             all_selected_map.empty()
             cnt_rounds += 1
+
+            map_mist_screen = map_screen.copy()
+            mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
+            cur_player.mists.draw(mist_screen)
+            mist_screen.set_alpha(128)
+            map_mist_screen.blit(mist_screen, (0, 0))
 
         if keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_window_is_open: # выбор клетки
             keys_clicked[32] = 0
@@ -239,13 +268,20 @@ while running:
                             selected_tank = tank
                         break
 
-        if selected_tank: # управление танком # ваня можешь переписать != False # Готово
+        if selected_tank: # управление танком
             selected_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], select_cell)
             if keys_clicked[0] or keys_clicked[1] or keys_clicked[2] or keys_clicked[3]:
                 cur_player.mists.empty()
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
-                scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
+                # scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
+
+                map_mist_screen = map_screen.copy()
+                mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
+                cur_player.mists.draw(mist_screen)
+                mist_screen.set_alpha(128)
+                map_mist_screen.blit(mist_screen, (0, 0))
+
             keys_clicked[0] = 0
             keys_clicked[1] = 0
             keys_clicked[2] = 0
@@ -261,6 +297,7 @@ while running:
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
                 scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
+
         else:  # управление камерой если не выбран танк
             cur_player.move(keys[0], keys[1], keys[2], keys[3])
             keys_clicked[0] = 0
@@ -295,17 +332,21 @@ while running:
         text_turns = font48.render(f"Turn: {cnt_rounds//QNT_PLAYERS + 1}", True, team_to_color[cur_player.n])
         text_res = font48.render(f"Resources : {cur_player.res}", True, team_to_color[cur_player.n])
         text_exp = font48.render(f"Сapture : {cur_player.exp}", True, team_to_color[cur_player.n])
-        # all_projectiles.update(all_walls, all_tanks, player.tanks, all_bases)
         for projectile in all_projectiles:
             dam = projectile.update(all_walls, all_tanks, cur_player.tanks, all_bases)
             if dam != 0:
                 dam_text = font32.render(f"{int(dam)}", True, team_to_color[projectile.team])
                 dam_dest = projectile.x, projectile.y
                 damage_text_timelive = FPS
-        virtual_screen.fill((255, 255, 255))
-        screen.fill((255, 255, 255))
-        cur_player.mists.draw(virtual_screen)
-        all_cells.draw(virtual_screen)
+
+        # screen.fill((255, 255, 255))
+        # virtual_screen.fill((255, 255, 255))
+        virtual_screen = map_mist_screen.copy()
+        # print(mist_screen)
+        # print(map_screen)
+        # virtual_screen.blit(mist_screen, (0, 0))
+        # virtual_screen.set_alpha(128)
+        # cur_player.mists.draw(virtual_screen)
         for tank in all_tanks:
             if cur_player.mist_matrix[tank.place[1], tank.place[0]] > 0:
                 tank.draw(virtual_screen, cur_player.n)
@@ -313,7 +354,6 @@ while running:
             if cur_player.mist_matrix[base.place[1], base.place[0]] > 0:
                 base.draw(virtual_screen)
         all_projectiles.draw(virtual_screen)
-        all_walls.draw(virtual_screen)
         all_selected_map.draw(virtual_screen)
         if damage_text_timelive > 0:
             virtual_screen.blit(dam_text, dam_dest)
@@ -329,7 +369,9 @@ while running:
         screen.blit(text_res, (SW/2-SW*7/64, 0))
         screen.blit(text_exp, (SW/2-SW*7/64, SH*3/80))
         screen.blit(text_turns, (SW*14/16 + SW*2/256, SH*14/16 - SW/32))
-
+        if drop_the_curtain == True:
+            screen.fill((66, 66, 66))
+    print(clock.get_fps())
     clock.tick(FPS)
     pg.display.flip()
 

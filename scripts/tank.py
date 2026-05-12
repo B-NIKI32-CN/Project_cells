@@ -70,10 +70,10 @@ class Tank(pg.sprite.Sprite):
         self.vis = self.ttx[0]
         self.hp = self.ttx[1]  #self.ttx[1]
         self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
-        self.m = [self.ttx[5], 37,self.ttx[7]] #self.ttx[5]
+        self.m = [1000, 37,self.ttx[7]] #self.ttx[5]
         self.dam = self.ttx[8]
         self.pen = self.ttx[9]
-        self.rel = self.ttx[10]
+        self.rel = 0#self.ttx[10]
         self.dist = self.ttx[11]
         self.cost = self.ttx[12]
         self.exp = self.ttx[13]
@@ -138,7 +138,7 @@ class Tank(pg.sprite.Sprite):
             dx = m_m_pos[0] - self.rect.centerx
             dy = m_m_pos[1] - self.rect.centery
             angle = angle_vector(dx, dy)
-            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, (self.dist+0.5)*len_cell, self.team)  # можно и self.H но они равны
+            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, (self.dist+0.5)*len_cell + 1, self.team)  # можно и self.H но они равны
             all_projectiles.add(projectile)
             self.rel_dinamic = self.rel
     def get_bullet(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):

@@ -2,7 +2,7 @@ import pygame as pg
 from settings import *
 
 color = (100, 100, 100)
-alpha = 200
+alpha = 128
 
 class Mist(pg.sprite.Sprite): # класс тумана, чисто визуальный эффект (не факт, возможно буду не рисовать танки от него), чтобы понимать где игрок не видим
     W = len_cell
