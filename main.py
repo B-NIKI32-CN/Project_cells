@@ -113,9 +113,9 @@ while running:
             scripts.functions.builder(map, scripts.cell.Cell, 0, all_cells)
             scripts.functions.builder(map, scripts.wall.Wall, 1, all_walls)
             map_screen = pg.Surface((virtual_screen_size, virtual_screen_size))
-            map_screen.fill((255, 255, 255))
             all_cells.draw(map_screen)
             all_walls.draw(map_screen)
+            map_screen.fill((128, 128, 128), special_flags=pg.BLEND_RGB_MULT)
             to_build_map = False
 
         if drop_the_curtain == True and keys_clicked[32] == 1:
@@ -134,16 +134,7 @@ while running:
         if to_regist_players:   # регистрация игроков
             for i in range(QNT_PLAYERS):
                 players.append(scripts.player.Player(i, res0))
-            for cur_player in players:
-                scripts.functions.mist_builder(np.zeros((map_len_cells, map_len_cells)), scripts.mist.Mist, cur_player.mists)
             cur_player = players[moving_player_qnt]
-
-            map_mist_screen = map_screen.copy()
-            mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
-            cur_player.mists.draw(mist_screen)
-            mist_screen.set_alpha(128)
-            map_mist_screen.blit(mist_screen, (0, 0))
-
             to_regist_players = False
 
         # координаты  мыщки сдвинутые на dest (смещение камеры игрока) снизу написал все
@@ -218,16 +209,8 @@ while running:
                     cell_mouse_pos, cur_player.n, 1, ready_to_spawn_tank.ttx,
                     cur_player, scripts.mist.Mist, map)
                 cur_player.res -= ready_to_spawn_tank.ttx[-4]
-                cur_player.mists.empty()
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
-                scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
-
-                map_mist_screen = map_screen.copy()
-                mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
-                cur_player.mists.draw(mist_screen)
-                mist_screen.set_alpha(128)
-                map_mist_screen.blit(mist_screen, (0, 0))
 
                 ready_to_spawn_tank = False
 
@@ -249,12 +232,6 @@ while running:
             all_selected_map.empty()
             cnt_rounds += 1
 
-            map_mist_screen = map_screen.copy()
-            mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
-            cur_player.mists.draw(mist_screen)
-            mist_screen.set_alpha(128)
-            map_mist_screen.blit(mist_screen, (0, 0))
-
         if keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_window_is_open: # выбор клетки
             keys_clicked[32] = 0
             selected_tank = False
@@ -271,16 +248,8 @@ while running:
         if selected_tank: # управление танком
             selected_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], select_cell)
             if keys_clicked[0] or keys_clicked[1] or keys_clicked[2] or keys_clicked[3]:
-                cur_player.mists.empty()
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
-                # scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
-
-                map_mist_screen = map_screen.copy()
-                mist_screen = pg.Surface((virtual_screen_size, virtual_screen_size), pg.SRCALPHA)
-                cur_player.mists.draw(mist_screen)
-                mist_screen.set_alpha(128)
-                map_mist_screen.blit(mist_screen, (0, 0))
 
             keys_clicked[0] = 0
             keys_clicked[1] = 0
@@ -295,7 +264,6 @@ while running:
                 selected_tank = False
                 cur_player.mists.empty()
                 cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks)
-                scripts.functions.mist_builder(cur_player.mist_matrix, scripts.mist.Mist, cur_player.mists)
                 cur_player.mist_matrix[cur_player.base.sprites()[0].place[1], cur_player.base.sprites()[0].place[0]] = 1
 
         else:  # управление камерой если не выбран танк
@@ -339,14 +307,11 @@ while running:
                 dam_dest = projectile.x, projectile.y
                 damage_text_timelive = FPS
 
-        # screen.fill((255, 255, 255))
-        # virtual_screen.fill((255, 255, 255))
-        virtual_screen = map_mist_screen.copy()
-        # print(mist_screen)
-        # print(map_screen)
-        # virtual_screen.blit(mist_screen, (0, 0))
-        # virtual_screen.set_alpha(128)
-        # cur_player.mists.draw(virtual_screen)
+        virtual_screen = map_screen.copy()
+
+        for cell in all_cells:
+            if cur_player.mist_matrix[cell.place[1], cell.place[0]] > 0:
+                cell.draw(virtual_screen)
         for tank in all_tanks:
             if cur_player.mist_matrix[tank.place[1], tank.place[0]] > 0:
                 tank.draw(virtual_screen, cur_player.n)
@@ -354,6 +319,9 @@ while running:
             if cur_player.mist_matrix[base.place[1], base.place[0]] > 0:
                 base.draw(virtual_screen)
         all_projectiles.draw(virtual_screen)
+        for wall in all_walls:
+            if cur_player.mist_matrix[wall.place[1], wall.place[0]] > 0:
+                wall.draw(virtual_screen)
         all_selected_map.draw(virtual_screen)
         if damage_text_timelive > 0:
             virtual_screen.blit(dam_text, dam_dest)

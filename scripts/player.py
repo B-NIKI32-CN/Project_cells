@@ -14,7 +14,7 @@ class Player:
         self.base = 0
         self.hp = 1
         self.tanks = pg.sprite.Group()
-        self.mists = pg.sprite.Group()
+        # self.mists = pg.sprite.Group()
         self.mist_matrix = np.zeros((map_len_cells, map_len_cells))
     def move(self, w, a, s, d):
         if w == 1:

@@ -10,8 +10,11 @@ class Wall(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.x = x
         self.y = y
+        self.place = [self.x // self.W, self.y // self.H]
         self.image = pg.Surface(self.size, pg.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W/2, self.y + self.H/2
         self.image.fill((0, 0, 0))
         self.place = [self.x // self.W, self.y // self.H]
+    def draw(self, surface):
+        surface.blit(self.image, (self.x, self.y))

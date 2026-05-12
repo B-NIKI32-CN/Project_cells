@@ -15,8 +15,8 @@ class Projectile(pg.sprite.Sprite):
         self.pen = pen
         self.dist = dist
         self.size = (projectile_size, projectile_size)
-        self.dx = projectile_speed * cos(self.angle)
-        self.dy = projectile_speed * sin(self.angle)
+        self.dx = projectile_speed * cos(self.angle) * self.dist/len_cell
+        self.dy = projectile_speed * sin(self.angle) * self.dist/len_cell
         self.image = pg.Surface((abs(self.dx)+1,abs(self.dy)+1), pg.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.center = (self.x-self.dx/2, self.y-self.dy/2)
@@ -64,6 +64,7 @@ class Projectile(pg.sprite.Sprite):
         self.y += self.dy
         self.dist -= self.dmove
         if self.dist < 0:
+            print('TT')
             self.x += self.dist/self.dmove * self.dx
             self.y += self.dist/self.dmove * self.dy
         self.rect.center = (self.x, self.y)

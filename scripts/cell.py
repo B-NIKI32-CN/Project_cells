@@ -12,7 +12,9 @@ class Cell(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.x = x
         self.y = y
+        self.place = [self.x // self.W, self.y // self.H]
         self.image = pg.Surface(self.size, pg.SRCALPHA)
+        self.image.fill((255,255,255))
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W/2, self.y + self.H/2
         pg.draw.line(self.image, self.color, (0,0), (self.W, 0), width=self.width)
@@ -21,3 +23,5 @@ class Cell(pg.sprite.Sprite):
         pg.draw.line(self.image, self.color, (self.W, self.H), (0, self.H),
                      width=self.width+2)
         pg.draw.line(self.image, self.color, (0, self.H), (0, 0), width=self.width)
+    def draw(self, surface):
+        surface.blit(self.image, (self.x, self.y))
