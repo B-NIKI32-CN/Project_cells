@@ -1,17 +1,21 @@
 from importlib import reload
-from scripts.functions import angle_vector, damage, mist_doting, mist_builder
+from scripts.functions import angle_vector, damage, mist_doting3000, mist_builder
 from settings import *
 import pygame as pg
 from math import sin, cos, pi, radians, atan
 import numpy as np
 
-class Tank(pg.sprite.Sprite):
+class Tank(pg.sprite.DirtySprite):
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
     def __init__(self, x, y, team, orient, ttx, player, Mist, map):
-        pg.sprite.Sprite.__init__(self)
+        pg.sprite.DirtySprite.__init__(self)
+        self.visible = True
+        self.dirty = 1
+        self.layer = 2
+        self.misty = 0
         self.ttx = ttx
         self.team = team
         self.player = player
@@ -20,6 +24,7 @@ class Tank(pg.sprite.Sprite):
         self.map = map
         self.x = x
         self.y = y
+        self.drowed_stats = False
         self.place = [self.x//self.W, self.y//self.H]
         self.image = pg.Surface(self.size, pg.SRCALPHA)
         self.imageOrig = self.image
@@ -65,10 +70,12 @@ class Tank(pg.sprite.Sprite):
         pg.draw.line(self.image, team_to_anticolor[self.team], (self.W, self.H), (0, self.H),
                      width=cell_width + 2)
         pg.draw.line(self.image, team_to_anticolor[self.team], (0, self.H), (0, 0), width=cell_width)
-        self.imageOrig = self.image
+        self.imageOrig = self.image.copy()
+        self.image_for_stats = self.image.copy()
+
 
         self.vis = self.ttx[0]
-        self.hp = self.ttx[1]  #self.ttx[1]
+        self.hp = 100000  #self.ttx[1]
         self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
         self.m = [1000, 37,self.ttx[7]] #self.ttx[5]
         self.dam = self.ttx[8]
@@ -127,20 +134,27 @@ class Tank(pg.sprite.Sprite):
             if self.orient > 3:
                 self.orient = 0
             self.m[1] -= 1
-        self.map[self.place[1], self.place[0]] = 2
-        self.image = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
-        self.rect = self.image.get_rect()
-        self.rect.center = self.x + self.W / 2, self.y + self.H / 2
-        select_cell.rect.center = self.x + self.W / 2, self.y + self.H / 2
+        if a == 1 or w == 1 or s == 1 or d == 1:
+            self.map[self.place[1], self.place[0]] = 2
+            self.image = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
+            self.image_for_stats = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
+            self.rect = self.image.get_rect()
+            self.rect.center = self.x + self.W / 2, self.y + self.H / 2
+            select_cell.rect.center = self.x + self.W / 2, self.y + self.H / 2
+            select_cell.dirty = 1
+            self.dirty = 1
+            self.drowed_stats = False
 
-    def shot(self, all_projectiles, m_m_pos, Projectile):
+    def shot(self, all_projectiles, all_sprites, m_m_pos, Projectile):
         if self.rel_dinamic == 0:
             dx = m_m_pos[0] - self.rect.centerx
             dy = m_m_pos[1] - self.rect.centery
             angle = angle_vector(dx, dy)
             projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, (self.dist+0.5)*len_cell + 1, self.team)  # можно и self.H но они равны
             all_projectiles.add(projectile)
+            all_sprites.add(projectile)
             self.rel_dinamic = self.rel
+
     def get_bullet(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):
         tl = [self.rect.left - bullet_pos[0], self.rect.top - bullet_pos[1]]
         tr = [self.rect.right - bullet_pos[0], self.rect.top - bullet_pos[1]]
@@ -177,29 +191,49 @@ class Tank(pg.sprite.Sprite):
             arm /= abs(sin(bullet_angle))
         else:
             arm /= abs(cos(bullet_angle))
+
+        print(f"side: {side}, arm: {arm}\n tl_angle: {180/pi*tl_angle}\n"
+              f" tr_angle: {180/pi*tr_angle}\n br_angle: {180/pi*br_angle}\n"
+              f" bl_angle: {180/pi*bl_angle}\n bullet_angle: {180/pi*bullet_angle}\n"
+              f"rect_b: {self.rect.bottom}, bul_pos: {bullet_pos}\n\n\n ")
         dam = damage(arm, bullet_pen, bullet_dam)
         self.hp -= dam
         if self.hp <= 0:
             self.map[self.place[1], self.place[0]] = 0
+            self.dirty = 1
             self.kill()
-            self.player.mists.empty()
-            self.player.mist_matrix = mist_doting(np.zeros((map_len_cells, map_len_cells), np.int64),
-                                                               self.player.tanks)
-            mist_builder(self.player.mist_matrix, self.Mist, self.player.mists)
-            self.player.mist_matrix[self.player.base.sprites()[0].place[1], self.player.base.sprites()[0].place[0]] = 1
+        self.drowed_stats = False
+
         return dam
 
-    def draw(self, surface, team):
-        surface.blit(self.image, (self.x, self.y))
+    def draw_stats(self, team):
         color = team_to_anticolor[self.team]
         hp_draw = font16.render(f"{int(self.hp)}", True, color)
         hp_draw.set_alpha(200)
-        surface.blit(hp_draw, (self.x+self.delta/2+self.W*0.1, self.y+self.delta/2))
-        if self.team == team:
-            reload_draw = font16.render(f"|{self.rel_dinamic}", True, color)
-            reload_draw.set_alpha(200)
-            surface.blit(reload_draw, (self.x+self.W*0.7, self.y + self.delta / 2))
+        if self.drowed_stats == False:
+            self.dirty = 1
+            self.image = self.image_for_stats.copy()
+            if self.team == team:
+                reload_draw = font16.render(f"|{self.rel_dinamic}", True, color)
+                reload_draw.set_alpha(200)
+                self.image.blit(reload_draw, (self.W*0.7, self.delta / 2))
+
+            self.image.blit(hp_draw, (self.delta/2+self.W*0.1, self.delta/2))
+
+        self.drowed_stats = True
+
+
+
     def update(self):
         self.m = [self.ttx[5], self.ttx[6], self.ttx[7]]
         if self.rel_dinamic >= 1:
             self.rel_dinamic -= 1
+
+    def change_misty(self, misty):
+        if misty != self.misty:
+            self.misty = misty
+            self.dirty = 1
+            if misty == 1:
+                self.visible = False
+            else:
+                self.visible = True

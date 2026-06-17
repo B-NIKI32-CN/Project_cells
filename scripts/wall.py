@@ -2,12 +2,16 @@ import pygame as pg
 from settings import *
 
 
-class Wall(pg.sprite.Sprite):
+class Wall(pg.sprite.DirtySprite):
     W = len_cell
     H = W
     size = (W, H)
     def __init__(self, x, y):
-        pg.sprite.Sprite.__init__(self)
+        pg.sprite.DirtySprite.__init__(self)
+        self.visible = True
+        self.dirty = 0
+        self.layer = 1
+        self.misty = 1
         self.x = x
         self.y = y
         self.place = [self.x // self.W, self.y // self.H]
@@ -16,5 +20,11 @@ class Wall(pg.sprite.Sprite):
         self.rect.center = self.x + self.W/2, self.y + self.H/2
         self.image.fill((0, 0, 0))
         self.place = [self.x // self.W, self.y // self.H]
+
     def draw(self, surface):
         surface.blit(self.image, (self.x, self.y))
+
+    def change_misty(self, misty):
+        if misty != self.misty:
+            self.misty = misty
+            self.dirty = 1

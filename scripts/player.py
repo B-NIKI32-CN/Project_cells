@@ -8,10 +8,10 @@ class Player:
     vs = map_len_cells * len_cell
     def __init__(self, n, res):
         self.place = [0,0]
-        self.n = n
+        self.team = n
         self.res = res
         self.exp = 0
-        self.base = 0
+        self.base = None
         self.hp = 1
         self.tanks = pg.sprite.Group()
         # self.mists = pg.sprite.Group()
