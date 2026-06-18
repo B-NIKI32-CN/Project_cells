@@ -2,14 +2,18 @@ import pygame as pg
 from settings import *
 
 
-class Base(pg.sprite.Sprite):
+class Base(pg.sprite.DirtySprite):
     hp = base_hp
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
     def __init__(self, x, y, team, player):
-        pg.sprite.Sprite.__init__(self)
+        pg.sprite.DirtySprite.__init__(self)
+        self.visible = True
+        self.dirty = 1
+        self.layer = 2
+        self.misty = 0
         self.team = team
         self.player = player
         self.x = x
@@ -40,3 +44,12 @@ class Base(pg.sprite.Sprite):
         if self.hp <= 0:
             self.kill()
             self.player.hp = 0
+
+    def change_misty(self, misty):
+        if misty != self.misty:
+            self.misty = misty
+            self.dirty = 1
+            if misty == 1:
+                self.visible = False
+            else:
+                self.visible = True

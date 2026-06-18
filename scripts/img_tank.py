@@ -2,13 +2,15 @@ from settings import *
 import pygame as pg
 
 
-class ImgTank(pg.sprite.Sprite):
+class ImgTank(pg.sprite.DirtySprite):
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
     def __init__(self, x, y, team, orient, ttx):
-        pg.sprite.Sprite.__init__(self)
+        pg.sprite.DirtySprite.__init__(self)
+        self.visible = True
+        self.dirty = 2
         self.ttx = ttx
         self.team = team
         self.orient = orient
@@ -72,3 +74,6 @@ class ImgTank(pg.sprite.Sprite):
 
         self.image.blit(text_cost, (self.W*0.1, self.H*0.1))
         self.image.blit(text_exp, (self.W*0.1,self.H/4+self.H*0.1))
+
+    def mk_dirty2(self):
+        self.dirty = 2

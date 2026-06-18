@@ -1,9 +1,11 @@
 import pygame as pg
 # from settings import *
 
-class Button(pg.sprite.Sprite):
+class Button(pg.sprite.DirtySprite):
     def __init__(self, x, y, W, H, color):
-        pg.sprite.Sprite.__init__(self)
+        pg.sprite.DirtySprite.__init__(self)
+        self.visible = True
+        self.dirty = 1
         self.W = W
         self.H = H
         self.size = (W, H)
