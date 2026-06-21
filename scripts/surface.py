@@ -29,3 +29,6 @@ class Surface(pg.sprite.DirtySprite):
 
     def draw(self, surface): # рисовка по центру
         surface.blit(self.image, (self.x-self.W/2, self.y-self.H/2))
+
+    def draw_by_edge(self, surface):
+        surface.blit(self.image, (self.x, self.y))
