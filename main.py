@@ -5,12 +5,13 @@ import pygame as pg
 import scripts
 import maps
 from settings import *
-from ttx import *
+from ttc import *
 
 pg.init()
 pg.mixer.init()
 
-screen = pg.display.set_mode((SW, SH), vsync=1)
+# screen = pg.display.set_mode((SW, SH), pg.FULLSCREEN,  vsync=1)
+screen = pg.display.set_mode((SW, SH),  vsync=1)
 
 text_start = font48.render("Proceed", True, (0, 0, 0))
 
@@ -37,7 +38,6 @@ tanks_ing_for_window = pg.sprite.LayeredDirty() # некит переимену�
 all_sprites = pg.sprite.LayeredDirty(_time_threshold = 666)
 
 virtual_screen_size = map_len_cells * len_cell
-
 
 players = []
 
@@ -114,6 +114,8 @@ while running:
             to_build_menu = False
             screen.fill((255, 255, 255))
             background = screen.copy()
+        if keys_clicked[11] == 1:
+            running = False
 
         all_buttons_menu.draw(screen, background)
 
@@ -172,11 +174,12 @@ while running:
                 mist_sprites = map_matrix[np.where(cur_player.mist_matrix == 1)]
 
 
-        if keys_clicked[32] == 1 and cur_player.base != None and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0] and cur_player.base.sprites()[0].place[1] == cell_mouse_pos[1]: # меню выбора танков
+        if (keys_clicked[32] == 1 and cur_player.base != None and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0]
+                and cur_player.base.sprites()[0].place[1] == cell_mouse_pos[1]) and market_window_is_open == False: # меню выбора танков
             keys_clicked[32] = 0
             tank_menu =  scripts.button.Button(SW/2, SH/2, SW/2, SH/2, (66,66,66))
             tank_menu.dirty = 2
-            tank_menu.edges((255,128,0), 10)
+            tank_menu.edges((255,128,0), 5)
             market_window.add(tank_menu)
             for j, tank_for_menu in enumerate(alpha):
                 x = j%3
@@ -193,9 +196,13 @@ while running:
             b_throw = scripts.button.Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (255,255,128))
             b_throw.edges((128,128,0), 5)
             b_throw.dirty = 2
-            market_window.add(ext, b_take, b_throw)
+            canvas_ttc = scripts.surface.Surface(SW/32, SH/4, SW*7/32, SH/2, (255, 255, 255), 1,
+                                                 (255, 128, 0), int(SW * 5 / 1280))
+            canvas_ttc.dirty = 2
+            market_window.add(ext, b_take, b_throw, canvas_ttc)
 
             market_window_is_open = True
+
         if market_window_is_open: # выбор танков в соответственном меню
             if keys_clicked[32] == 1:
                 keys_clicked[32] = 0
@@ -204,6 +211,33 @@ while running:
                         market_window.remove(all_selected_in_window)
                         all_selected_in_window.empty()
                         taken_tank = tank
+                        canvas_ttc.kill()
+
+                        text_ttc = font48.render(f"TTC:", True, (0, 0, 0))
+                        text_vis = font32.render(f"Distance of visible : {taken_tank.ttx[0]}", True, (0, 0, 0))
+                        text_hp = font32.render(f"Healf points : {taken_tank.ttx[1]}", True, (0, 0, 0))
+                        text_a = font32.render(f"Armor: {taken_tank.ttx[2]}, {taken_tank.ttx[3]}, {taken_tank.ttx[4]}", True, (0, 0, 0))
+                        text_m = font32.render(f"Mobility: {taken_tank.ttx[5]}, {taken_tank.ttx[6]}, {taken_tank.ttx[7]}", True, (0, 0, 0))
+                        text_dam = font32.render(f"Damage: {taken_tank.ttx[8]}", True, (0, 0, 0))
+                        text_pen = font32.render(f"Penedration: {taken_tank.ttx[9]}", True, (0, 0, 0))
+                        text_rel = font32.render(f"Reloading: {taken_tank.ttx[10]}", True, (0, 0, 0))
+                        text_dist = font32.render(f"Fire distance: {taken_tank.ttx[11]}", True, (0, 0, 0))
+
+                        canvas_ttc = scripts.surface.Surface(SW / 32, SH / 4, SW * 7 / 32, SH / 2, (255, 255, 255), 1,
+                                                             (255, 128, 0), int(SW * 5 / 1280))
+                        canvas_ttc.dirty = 2
+                        canvas_ttc.image.blit(text_ttc, (10,10))
+                        canvas_ttc.image.blit(text_vis, (10, 10+32))
+                        canvas_ttc.image.blit(text_hp, (10, 10+32+32))
+                        canvas_ttc.image.blit(text_a, (10, 10+32+32*2))
+                        canvas_ttc.image.blit(text_m, (10, 10 + 32 + 32 * 3))
+                        canvas_ttc.image.blit(text_dam, (10, 10 + 32 + 32 * 4))
+                        canvas_ttc.image.blit(text_pen, (10, 10 + 32 + 32 * 5))
+                        canvas_ttc.image.blit(text_rel, (10, 10 + 32 + 32 * 6))
+                        canvas_ttc.image.blit(text_dist, (10, 10 + 32 + 32 * 7))
+
+                        market_window.add(canvas_ttc)
+
                         select_place = scripts.selectedcell.Selectedcell(tank.x, tank.y)
                         select_place.dirty = 2
                         all_selected_in_window.add(select_place)
@@ -255,7 +289,7 @@ while running:
 
                 tank_ready_to_spawn = None
 
-        if keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0: # смена хода
+        if (keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0): # смена хода
             keys_clicked[32] = 0
             if cnt_rounds//QNT_PLAYERS != 0:
                 cur_player.exp += scripts.functions.cell_distribution(QNT_PLAYERS, cur_player.team, all_tanks)
@@ -356,7 +390,7 @@ while running:
         for tank in all_tanks:
             tank.draw_stats(cur_player.team)
 
-        canvas_hp = scripts.surface.Surface(SW/64, (SH*(1/4+5/800)) + SH*(1/4-5/800)*(cur_player.hp/base_hp), SW/32 - SW*10/1280, (SH/2 - SW*10/1280)*(cur_player.hp/base_hp),
+        canvas_hp = scripts.surface.Surface(SW/64+1, (SH*(1/4+5/800)) + SH*(1/4-5/800)*(cur_player.hp/base_hp), SW/32 - SW*10/1280-1, (SH/2 - SW*10/1280)*(cur_player.hp/base_hp),
                                             (128+(team_to_color[cur_player.team][0]-128)*(cur_player.hp/base_hp),
                                              128+(team_to_color[cur_player.team][1]-128)*(cur_player.hp/base_hp),
                                              128+(team_to_color[cur_player.team][2]-128)*(cur_player.hp/base_hp)), 0, 0, 0)
@@ -394,13 +428,14 @@ while running:
         canvas0.draw(screen)
         canvas1.draw(screen)
         canvas_for_hp.draw(screen)
+
         canvas_hp.draw(screen)
         screen.blit(text_res, (SW/2-SW*7/64, 0))
         screen.blit(text_exp, (SW/2-SW*7/64, SH*3/80))
         screen.blit(text_turns, (SW*14/16 + SW*2/256, SH*14/16 - SW/32))
         if drop_the_curtain == True:
             screen.fill((66, 66, 66))
-    # print(clock.get_fps())
+    print(clock.get_fps())
     clock.tick(FPS)
     pg.display.flip()
 

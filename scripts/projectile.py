@@ -17,13 +17,17 @@ class Projectile(pg.sprite.DirtySprite):
         self.dam = dam
         self.pen = pen
         self.dist = dist
-        self.size = (projectile_size, projectile_size)
+        self.size = projectile_size
         self.dx = projectile_speed * cos(self.angle) * self.dist/len_cell
         self.dy = projectile_speed * sin(self.angle) * self.dist/len_cell
-        self.image = pg.Surface((abs(self.dx)+1,abs(self.dy)+1), pg.SRCALPHA)
+        self.image = pg.Surface((abs(self.dx)+2*self.size, abs(self.dy)+2*self.size), pg.SRCALPHA)
+        # self.image.fill((0,0,0))
         self.rect = self.image.get_rect()
         self.rect.center = (self.x-self.dx/2, self.y-self.dy/2)
-        pg.draw.line(self.image, (255,0,0), (abs(self.dx/2)+self.dx/2, abs(self.dy/2)+self.dy/2), (abs(self.dx/2)-self.dx/2, abs(self.dy/2)-self.dy/2), width=projectile_size)
+
+        pg.draw.line(self.image, (255,0,0), (abs(self.dx/2)+self.dx/2 + self.size, abs(self.dy/2)+self.dy/2 + self.size),
+                     (abs(self.dx/2)-self.dx/2 + self.size, abs(self.dy/2)-self.dy/2 + self.size), width=self.size)
+
         self.solve, self.equals = calclin((self.x,self.y),(self.x + self.dx, self.y + self.dy))
         self.die = 0
         self.dmove = (self.dx**2 + self.dy**2)**0.5
@@ -68,9 +72,9 @@ class Projectile(pg.sprite.DirtySprite):
     def update(self, all_walls, all_tanks, team_tanks, all_bases, map_matrix):
         if self.die == 1 or self.dist <= 0:
             self.kill()
-        self.x += self.dx
-        self.y += self.dy
-        self.dist -= self.dmove
+        self.x += self.dx*0.5
+        self.y += self.dy*0.5
+        self.dist -= self.dmove*0.5
         if self.dist < 0:
             self.x += self.dist/self.dmove * self.dx
             self.y += self.dist/self.dmove * self.dy

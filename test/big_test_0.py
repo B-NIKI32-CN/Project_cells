@@ -10,7 +10,7 @@ import pygame as pg
 import maps.sandlot as sandlot
 import maps.squares as squares
 from settings import *
-from ttx import *
+from ttc import *
 
 pg.init()
 pg.mixer.init()

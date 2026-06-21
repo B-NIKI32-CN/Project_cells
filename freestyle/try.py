@@ -91,32 +91,32 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                use_dirty = not use_dirty
-                print(f"Режим: {'Dirty' if use_dirty else 'Normal'}")
-            if event.key == pygame.K_l:
-                k = 1
-    if k==1:
-        k=0
-        for sprite in dirty_group:
-            sprite.visible = False
+        # if event.type == pygame.KEYDOWN:
+    #         if event.key == pygame.K_SPACE:
+    #             use_dirty = not use_dirty
+    #             print(f"Режим: {'Dirty' if use_dirty else 'Normal'}")
+    #         if event.key == pygame.K_l:
+    #             k = 1
+    # # if k==1:
+    #     k=0
+    #     for sprite in dirty_group:
+    #         sprite.visible = False
 
 
 
-    if use_dirty:
-        # Обновление dirty спрайтов
-        dirty_group.update()
-        # Отрисовка только грязных областей!
-        dirty_group.draw(screen, background)
-    else:
-        # Обычный подход: очистка всего экрана
-        screen.fill((0, 0, 0))
-        normal_group.update()
-        normal_group.draw(screen)
+    # if use_dirty:
+    #     # Обновление dirty спрайтов
+    #     dirty_group.update()
+    #     # Отрисовка только грязных областей!
+    #     dirty_group.draw(screen, background)
+    # else:
+    #     # Обычный подход: очистка всего экрана
+    #     screen.fill((0, 0, 0))
+    #     normal_group.update()
+    #     normal_group.draw(screen)
 
     print(clock.get_fps())
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(1000)
 
 
