@@ -71,6 +71,9 @@ all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
             pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
             pg.K_ESCAPE, pg.K_q)
 
+old_fps_val = 0 # для вывода FPS
+
+
 while running:
     r_m_pos = pg.mouse.get_pos()
     for event in pg.event.get():
@@ -434,7 +437,12 @@ while running:
         screen.blit(text_turns, (SW*14/16 + SW*2/256, SH*14/16 - SW/32))
         if drop_the_curtain == True:
             screen.fill((66, 66, 66))
-    print(clock.get_fps())
+    
+
+    if old_fps_val != clock.get_fps():
+        print(clock.get_fps())
+        old_fps_val = clock.get_fps()
+
     clock.tick(FPS)
     pg.display.flip()
 
