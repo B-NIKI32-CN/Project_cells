@@ -297,8 +297,7 @@ while running:
             cur_player.tanks.update()
             for tank in all_tanks:
                 tank.drowed_stats = False
-            active_player += 1
-            active_player %= QNT_PLAYERS
+            active_player = (active_player + 1) % QNT_PLAYERS
             cur_player = players[active_player]
             cur_player.mist_matrix = scripts.functions.mist_doting3000(cur_player.tanks, cur_player.base,
                                                                        map_matrix, all_tanks, all_bases, cur_player.team)
