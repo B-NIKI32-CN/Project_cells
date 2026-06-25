@@ -1,7 +1,9 @@
 import numpy as np
 import pygame as pg
 from settings import *
-from math import sin, cos, pi, atan
+from math import sin, cos, pi, atan, log
+import matplotlib.pyplot as plt
+# import scipy.interpolate as interp
 
 def builder(map, obj, obj_ind, obj_group, all_sprites, obj_group_matrix):
     poses = np.where(map == obj_ind)
@@ -142,20 +144,35 @@ def cell_distribution(n, team, group): # функция присвоения к�
     exp = len(np.where(bool_matrix == 1)[0])
     return exp
 
+# def f1(x):
+#     return sin(pi*(x-0.5))/2 + 0.5
+# def f2(x):
+#     return (x-1)**2 + 1
+# def f3(x):
+#     return x - 0.25
+# def f_full(x):
+#     if x <= 1:
+#         k = f1(x)
+#     elif x <= 1.5:
+#         k = f2(x)
+#     else:
+#         k = f3(x)
+#     return k
+
 def f1(x):
-    return sin(pi*(x-0.5))/2 + 0.5
+    return x**2
 def f2(x):
-    return (x-1)**2 + 1
-def f3(x):
-    return x - 0.25
-def damage(a, p, d0):
-    x = p/a
+    return log(x)/2 +1
+def f_full(x):
     if x <= 1:
         k = f1(x)
-    elif x <= 1.5:
-        k = f2(x)
     else:
-        k = f3(x)
+        k = f2(x)
+    return k
+
+def damage(a, p, d0):
+    x = p/a
+    k = f_full(x)
     d = k * d0
     return d
 
@@ -188,3 +205,16 @@ def calclin(pount1, pount2):
 def dist_linpoint(point, solve, equals):
     dist = abs(point[0]*solve[0] + point[1]*solve[1] - equals) / (solve[0]**2 + solve[1]**2)**0.5
     return dist
+
+# plt.figure(figsize=[10,6], dpi=100, facecolor='m')
+# x_plot = np.linspace(0, 4, 500)
+# y_plot = []
+# for i in range(len(x_plot)):
+#     y_plot.append(damage(1, x_plot[i], 1))
+# plt.plot(x_plot, y_plot)
+#
+#
+#
+# plt.grid(True)
+#
+# plt.show()

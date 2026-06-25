@@ -294,7 +294,7 @@ while running:
 
         if (keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0): # смена хода
             keys_clicked[32] = 0
-            if cnt_rounds//QNT_PLAYERS != 0:
+            if cnt_rounds//QNT_PLAYERS != 0 or active_player == QNT_PLAYERS-1:
                 cur_player.exp += scripts.functions.cell_distribution(QNT_PLAYERS, cur_player.team, all_tanks)
                 cur_player.res += scripts.functions.get_res(len(cur_player.tanks.sprites()))
             cur_player.tanks.update()

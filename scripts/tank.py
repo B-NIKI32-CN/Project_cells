@@ -75,12 +75,12 @@ class Tank(pg.sprite.DirtySprite):
 
 
         self.vis = self.ttc[0]
-        self.hp = 100000  #self.ttx[1]
+        self.hp = self.ttc[1]
         self.a = [self.ttc[2], self.ttc[3], self.ttc[4]]
-        self.m = [1000, 37, self.ttc[7]] #self.ttx[5]
+        self.m = [self.ttc[5], 37, self.ttc[7]] #self.ttc[5]
         self.dam = self.ttc[8]
         self.pen = self.ttc[9]
-        self.rel = 0#self.ttx[10]
+        self.rel = self.ttc[10] #self.ttc[10]
         self.dist = self.ttc[11]
         self.cost = self.ttc[12]
         self.exp = self.ttc[13]
