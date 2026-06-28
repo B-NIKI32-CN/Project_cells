@@ -1,1 +1,1 @@
-from . import sandlot, squares
+from . import sandlot, squares, memorial

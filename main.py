@@ -130,7 +130,7 @@ while running:
 
     elif scene == "game":
         if to_build_map:
-            map = maps.squares.map.copy()
+            map = maps.memorial.map.copy()
             scripts.functions.builder(map, scripts.cell.Cell, 0, all_cells, all_sprites, map_matrix)
             scripts.functions.builder(map, scripts.wall.Wall, 1, all_walls, all_sprites, map_matrix)
             map_screen = pg.Surface((virtual_screen_size, virtual_screen_size))
@@ -430,14 +430,13 @@ while running:
         canvas0.draw(screen)
         canvas1.draw(screen)
         canvas_for_hp.draw(screen)
-
         canvas_hp.draw(screen)
+
         screen.blit(text_res, (SW/2-SW*7/64, 0))
         screen.blit(text_exp, (SW/2-SW*7/64, SH*3/80))
         screen.blit(text_turns, (SW*14/16 + SW*2/256, SH*14/16 - SW/32))
         if drop_the_curtain == True:
             screen.fill((66, 66, 66))
-    
 
     if old_fps_val != clock.get_fps():
         print(clock.get_fps())
