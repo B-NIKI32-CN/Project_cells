@@ -1,6 +1,4 @@
 # хуй пися члеен
-from urllib.parse import to_bytes
-
 import pygame as pg
 import scripts
 import maps
@@ -11,7 +9,7 @@ pg.init()
 pg.mixer.init()
 
 # screen = pg.display.set_mode((SW, SH), pg.FULLSCREEN,  vsync=1)
-screen = pg.display.set_mode((SW, SH),  vsync=1)
+screen = pg.display.set_mode((SW, SH), vsync=1)
 
 text_start = font48.render("Proceed", True, (0, 0, 0))
 
@@ -25,15 +23,15 @@ all_cells = pg.sprite.LayeredDirty()
 map_matrix = np.empty((map_len_cells, map_len_cells), dtype=object)
 
 all_selected_cells = pg.sprite.LayeredDirty()
-all_selected_in_window = pg.sprite.LayeredDirty() # некит переименуй #+++
+all_selected_in_window = pg.sprite.LayeredDirty()
 all_selected_taken_in_window = pg.sprite.LayeredDirty()
 all_tanks = pg.sprite.LayeredDirty()
 all_bases = pg.sprite.LayeredDirty()
 all_buttons_menu = pg.sprite.LayeredDirty()
 all_buttons_game = pg.sprite.LayeredDirty()
 all_projectiles = pg.sprite.LayeredDirty()
-market_window = pg.sprite.LayeredDirty() # некит переименуй   #+
-tanks_ing_for_window = pg.sprite.LayeredDirty() # некит переименуй   #+
+market_window = pg.sprite.LayeredDirty()
+market_ui_tanks = pg.sprite.LayeredDirty()
 
 all_sprites = pg.sprite.LayeredDirty(_time_threshold = 666)
 
@@ -187,9 +185,9 @@ while running:
             for j, tank_for_menu in enumerate(alpha):
                 x = j%3
                 y = j//3
-                tanks_ing_for_window.add(scripts.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
+                market_ui_tanks.add(scripts.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
                                                                   SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, cur_player.team, 0, tank_for_menu))
-            market_window.add(tanks_ing_for_window)
+            market_window.add(market_ui_tanks)
             ext = scripts.button.Button(SW*3/4-SW/32, SH/4+SH/32, SW/16, SH/16, (200,0,0))
             ext.edges((0,255,255), 5)
             ext.dirty = 2
@@ -209,7 +207,7 @@ while running:
         if market_window_is_open: # выбор танков в соответственном меню
             if keys_clicked[32] == 1:
                 keys_clicked[32] = 0
-                for tank in tanks_ing_for_window:
+                for tank in market_ui_tanks:
                     if tank.rect.collidepoint(r_m_pos):
                         market_window.remove(all_selected_in_window)
                         all_selected_in_window.empty()
