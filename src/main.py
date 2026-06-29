@@ -58,15 +58,18 @@ canvas_dam = None
 
 market_window_is_open = False # было open_win_market (коммент можно удалить)
 
-keys = [0] * 100 # зачем тебе вручную делать список нажатых клавиш если есть pg.key.get_pressed()
-keys_clicked = [0] * 100
+USING_KEYS = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
+            pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
+            pg.K_ESCAPE, pg.K_q)
+keys_click = {i: False for i in USING_KEYS}
+MOUSE_LMB = 1
+USING_MOUSE_BUTTONS = {MOUSE_LMB}
+mouse_click = {i: False for i in USING_MOUSE_BUTTONS}
+
 active_player = 0
 QNT_PLAYERS = 2
 cnt_rounds = 0
 damage_text_timelive = 0
-all_keys = (pg.K_w, pg.K_a, pg.K_s, pg.K_d, pg.K_k, pg.K_l,
-            pg.K_e, pg.K_r, pg.K_SPACE, pg.K_t, pg.K_b,
-            pg.K_ESCAPE, pg.K_q)
 
 old_fps_val = 0 # для вывода FPS
 
@@ -74,36 +77,15 @@ old_fps_val = 0 # для вывода FPS
 while running:
     r_m_pos = pg.mouse.get_pos()
     for event in pg.event.get():
-        if event.type == pg.QUIT:
-            running = False
+        match event.type:
+            case pg.QUIT:
+                running = False
 
-        if event.type == pg.KEYDOWN:
-            for i, k in enumerate(all_keys):
-                if event.key == k:
-                    keys[i] = 1
-                    keys_clicked[i] = 1
-        if event.type == pg.KEYUP:
-            for i, k in enumerate(all_keys):
-                if event.key == k:
-                    keys[i] = 0
+            case pg.KEYDOWN:
+                keys_click[event.key] = True
 
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                keys[32] = 1
-                keys_clicked[32] = 1
-            if event.button == 2:
-                keys[35] = 1
-                keys_clicked[35] = 1
-            if event.button == 3:
-                keys[37] = 1
-                keys_clicked[37] = 1
-        if event.type == pg.MOUSEBUTTONUP:
-            if event.button == 1:
-                keys[32] = 0
-            if event.button == 2:
-                keys[35] = 0
-            if event.button == 3:
-                keys[37] = 0
+            case pg.MOUSEBUTTONDOWN:
+                mouse_click[event.button] = True
 
     if scene == "menu":
         if to_build_menu:
@@ -114,13 +96,13 @@ while running:
             to_build_menu = False
             screen.fill((255, 255, 255))
             background = screen.copy()
-        if keys_clicked[11] == 1:
+        if keys_click[pg.K_ESCAPE]:
             running = False
 
         all_buttons_menu.draw(screen, background)
 
-        if keys_clicked[32] == 1 and b_start.rect.collidepoint(r_m_pos):
-            keys_clicked[32] = 0
+        if mouse_click[MOUSE_LMB] and b_start.rect.collidepoint(r_m_pos):
+            mouse_click[MOUSE_LMB] = False
             scene = "game"
             to_build_menu = True
             all_buttons_menu.empty()
@@ -137,8 +119,8 @@ while running:
 
             to_build_map = False
 
-        if drop_the_curtain == True and keys_clicked[32] == 1:
-            keys_clicked[32] = 0
+        if drop_the_curtain == True and mouse_click[MOUSE_LMB]:
+            mouse_click[MOUSE_LMB] = False
             drop_the_curtain = False
 
         if to_build_game_buttons:
@@ -162,9 +144,9 @@ while running:
         cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
 
         if cur_player.base == None and not b_turn.rect.collidepoint(r_m_pos): # установка базы игрока
-            if (keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
+            if (mouse_click[MOUSE_LMB] and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
                     and tile_map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
-                keys_clicked[32] = 0
+                mouse_click[MOUSE_LMB] = False
                 cur_player.base = pg.sprite.Group()
                 utils.functions.spawn_team_obj(
                     tile_map, obj.base.Base, 3, all_bases, cur_player.base, all_sprites, cell_mouse_pos, cur_player.team, cur_player
@@ -174,9 +156,9 @@ while running:
                 mist_sprites = map_matrix[np.where(cur_player.mist_matrix == 1)]
 
 
-        if (keys_clicked[32] == 1 and cur_player.base != None and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0]
+        if (mouse_click[MOUSE_LMB] and cur_player.base != None and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0]
                 and cur_player.base.sprites()[0].place[1] == cell_mouse_pos[1]) and market_window_is_open == False: # меню выбора танков
-            keys_clicked[32] = 0
+            mouse_click[MOUSE_LMB] = False
             tank_menu = ui.button.Button(SW/2, SH/2, SW/2, SH/2, (66,66,66))
             tank_menu.dirty = 2
             tank_menu.edges((255,128,0), 5)
@@ -204,8 +186,8 @@ while running:
             market_window_is_open = True
 
         if market_window_is_open: # выбор танков в соответственном меню
-            if keys_clicked[32] == 1:
-                keys_clicked[32] = 0
+            if mouse_click[MOUSE_LMB]:
+                mouse_click[MOUSE_LMB] = False
                 for tank in market_ui_tanks:
                     if tank.rect.collidepoint(r_m_pos):
                         market_window.remove(all_selected_in_window)
@@ -272,8 +254,8 @@ while running:
                     taken_tank = None
                     market_window_is_open = False
 
-        if keys_clicked[32] == 1 and not market_window_is_open and tank_ready_to_spawn is not None and cur_player.base != None: # установка выбранного танка
-            keys_clicked[32] = 0
+        if mouse_click[MOUSE_LMB] and not market_window_is_open and tank_ready_to_spawn is not None and cur_player.base != None: # установка выбранного танка
+            mouse_click[MOUSE_LMB] = False
             dist_spawn0 = ((int(cur_player.base.sprites()[0].x) / len_cell - cell_mouse_pos[0]) ** 2
                            + (int(cur_player.base.sprites()[0].y) / len_cell - cell_mouse_pos[1]) ** 2) ** 0.5
             if (dist_spawn0 <= dist_spawn and cur_player.res >= tank_ready_to_spawn.ttx[12]
@@ -289,8 +271,8 @@ while running:
 
                 tank_ready_to_spawn = None
 
-        if (keys_clicked[32] == 1 and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0): # смена хода
-            keys_clicked[32] = 0
+        if (mouse_click[MOUSE_LMB] and b_turn.rect.collidepoint(r_m_pos) and cur_player.base != 0): # смена хода
+            mouse_click[MOUSE_LMB] = False
             if cnt_rounds//QNT_PLAYERS != 0:
                 cur_player.exp += utils.functions.cell_distribution(QNT_PLAYERS, cur_player.team, all_tanks)
                 cur_player.res += utils.functions.get_res(len(cur_player.tanks.sprites()))
@@ -314,8 +296,8 @@ while running:
             all_selected_cells.empty()
             cnt_rounds += 1
 
-        if keys_clicked[32] == 1 and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_window_is_open: # выбор клетки
-            keys_clicked[32] = 0
+        if mouse_click[MOUSE_LMB] and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_window_is_open: # выбор клетки
+            mouse_click[MOUSE_LMB] = False
             if select_cell == None:
                 select_cell = ui.selectedcell.Selectedcell(len_cell * cell_mouse_pos[0],
                                                             len_cell * cell_mouse_pos[1])
@@ -334,21 +316,25 @@ while running:
                             selected_tank = tank
                         break
 
-        if selected_tank is not None: # управление танком
-            if keys_clicked[0] or keys_clicked[1] or keys_clicked[2] or keys_clicked[3]:
-                selected_tank.move(keys_clicked[0], keys_clicked[1], keys_clicked[2], keys_clicked[3], select_cell)
+        if selected_tank is not None: # управление танком pg.K_w, pg.K_a, pg.K_s, pg.K_d
+            if keys_click[pg.K_w] or keys_click[pg.K_a] or \
+               keys_click[pg.K_s] or keys_click[pg.K_d]:
+                selected_tank.move(keys_click[pg.K_w], keys_click[pg.K_a], \
+                                   keys_click[pg.K_s], keys_click[pg.K_d], select_cell)
 
-                cur_player.mist_matrix = utils.functions.mist_doting3000(cur_player.tanks,
-                                                                           cur_player.base, map_matrix, all_tanks, all_bases, cur_player.team)
-                keys_clicked[0] = 0
-                keys_clicked[1] = 0
-                keys_clicked[2] = 0
-                keys_clicked[3] = 0
+                cur_player.mist_matrix = utils.functions.mist_doting3000(cur_player.tanks, 
+                    cur_player.base, map_matrix, all_tanks, all_bases, cur_player.team)
+                
+                keys_click[pg.K_w] = False
+                keys_click[pg.K_a] = False
+                keys_click[pg.K_s] = False
+                keys_click[pg.K_d] = False
 
-            if keys_clicked[8] == 1:
-                keys_clicked[8] = 0
+            if keys_click[pg.K_SPACE]:
+                keys_click[pg.K_SPACE] = False
                 selected_tank.shot(all_projectiles, all_sprites, dest_mouse_pos, obj.projectile.Projectile)
-            if keys[12] == 1:
+            if keys_click[pg.K_q]:
+                keys_click[pg.K_q] = False
                 tile_map[selected_tank.place[1], selected_tank.place[0]] = 0
                 selected_tank.kill()
                 selected_tank = None
@@ -356,15 +342,16 @@ while running:
                                                                            cur_player.base, map_matrix, all_tanks,
                                                                            all_bases, cur_player.team)
         else:  # управление камерой если не выбран танк
-            cur_player.move(keys[0], keys[1], keys[2], keys[3])
-            keys_clicked[0] = 0
-            keys_clicked[1] = 0
-            keys_clicked[2] = 0
-            keys_clicked[3] = 0
-            keys_clicked[8] = 0
+            keys = pg.key.get_pressed()
+            cur_player.move(keys[pg.K_w], keys[pg.K_a], keys[pg.K_s], keys[pg.K_d])
+            keys_click[pg.K_w] = False
+            keys_click[pg.K_a] = False
+            keys_click[pg.K_s] = False
+            keys_click[pg.K_d] = False
+            keys_click[pg.K_SPACE] = False
 
-        if keys_clicked[11] == 1:
-            keys_clicked[11] = 0
+        if keys_click[pg.K_ESCAPE]:
+            keys_click[pg.K_ESCAPE] = False
 
             scene = "menu"
 
