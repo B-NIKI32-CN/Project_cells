@@ -1,5 +1,6 @@
 import pygame as pg
-from settings import *
+from ..core.settings import len_cell
+
 
 color = (100, 100, 100)
 alpha = 128

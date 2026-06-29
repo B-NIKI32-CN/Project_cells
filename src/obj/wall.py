@@ -1,5 +1,5 @@
 import pygame as pg
-from settings import *
+from ..core.settings import *
 
 
 class Wall(pg.sprite.DirtySprite):
@@ -10,7 +10,7 @@ class Wall(pg.sprite.DirtySprite):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 0
-        self.layer = 1
+        self.layer = LAYER_GROUND
         self.misty = 1
         self.x = x
         self.y = y

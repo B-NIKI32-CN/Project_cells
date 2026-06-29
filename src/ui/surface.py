@@ -1,12 +1,13 @@
 import pygame as pg
-from settings import *
+from ..core.settings import *
+
 
 class Surface(pg.sprite.DirtySprite):
     def __init__(self, x, y, W, H, color, type, color_edge, width):
         pg.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.visible = True
-        self.layer = 6
+        self.layer = LAYER_UI
         self.W = W
         self.H = H
         self.size = (W, H)
@@ -19,6 +20,7 @@ class Surface(pg.sprite.DirtySprite):
         self.image.fill(color)
         self.rect = self.image.get_rect()
         self.rect.center = (self.x + self.W*0.5, self.y + self.H*0.5)
+        # self.rect.center = (self.x, self.y)
         if type == 1:
             pg.draw.line(self.image, self.color_edge, (0, 0), (self.W, 0), width=self.width*2)
             pg.draw.line(self.image, self.color_edge, (0 + self.W, 0), (self.W, self.H),

@@ -1,5 +1,5 @@
-from settings import *
 import pygame as pg
+from ..core.settings import *
 
 
 class ImgTank(pg.sprite.DirtySprite):

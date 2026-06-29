@@ -1,5 +1,5 @@
 import pygame as pg
-from settings import *
+from ..core.settings import *
 
 
 class Base(pg.sprite.DirtySprite):
@@ -12,7 +12,7 @@ class Base(pg.sprite.DirtySprite):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 1
-        self.layer = 2
+        self.layer = LAYER_OBJECTS
         self.misty = 0
         self.team = team
         self.player = player

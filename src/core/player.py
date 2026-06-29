@@ -1,6 +1,6 @@
 import pygame as pg
-from settings import *
 import numpy as np
+from ..core.settings import *
 
 class Player:
     select = 'player'

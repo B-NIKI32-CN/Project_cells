@@ -1,9 +1,9 @@
-from scripts.functions import builder
-from scripts.cell import Cell
-from scripts.wall import Wall
+from src.utils.functions import builder
+from src.obj.cell import Cell
+from src.obj.wall import Wall
 import pygame as pg
-import maps.sandlot as sandlot
-import maps.squares as squares
+import src.data.maps.sandlot as sandlot
+import src.data.maps.squares as squares
 
 
 SW = 1000

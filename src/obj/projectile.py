@@ -1,7 +1,9 @@
-from settings import *
 import pygame as pg
 from math import sin, cos, pi, radians
-from scripts.functions import calclin, dist_linpoint
+
+from ..core.settings import *
+from ..utils.functions import calclin, dist_linpoint
+
 
 class Projectile(pg.sprite.DirtySprite):
     speed = projectile_speed
@@ -9,7 +11,7 @@ class Projectile(pg.sprite.DirtySprite):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 2
-        self.layer = 7
+        self.layer = LAYER_PROJECTILES
         self.team = team
         self.x = x
         self.y = y

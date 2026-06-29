@@ -1,9 +1,9 @@
-from importlib import reload
-from scripts.functions import angle_vector, damage, mist_doting3000, mist_builder
-from settings import *
 import pygame as pg
-from math import sin, cos, pi, radians, atan
 import numpy as np
+from math import sin, cos, pi, radians, atan
+
+from ..core.settings import *
+from ..utils.functions import angle_vector, damage
 
 class Tank(pg.sprite.DirtySprite):
     W = len_cell
@@ -14,7 +14,7 @@ class Tank(pg.sprite.DirtySprite):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 1
-        self.layer = 2
+        self.layer = LAYER_OBJECTS
         self.misty = 0
         self.ttc = ttc
         self.team = team

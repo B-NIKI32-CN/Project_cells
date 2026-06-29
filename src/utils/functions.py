@@ -1,7 +1,7 @@
 import numpy as np
-import pygame as pg
-from settings import *
-from math import sin, cos, pi, atan
+from math import sin, pi, atan
+
+from ..core.settings import *
 
 def builder(map, obj, obj_ind, obj_group, all_sprites, obj_group_matrix):
     poses = np.where(map == obj_ind)

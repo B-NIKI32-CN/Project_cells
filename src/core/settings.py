@@ -1,4 +1,5 @@
 import pygame as pg
+
 a = 1
 # SW = screen.get_width()
 # SH = screen.get_height()
@@ -35,5 +36,12 @@ team_to_anticolor = {0:(255, 165, 0), 1:(255,0,0), 2:(0, 255, 0), 3:(128, 0, 128
 
 base_hp = 2000
 
-res0 = 300 #lik: супер не пон, переменные в настройках то расписывать нужно ж  #nik: это стартовое количество ресурсов, можешь переименовать на свое усмотрение
+INITIAL_RESOURCES = 300
 dist_spawn = 2
+
+# слои
+LAYER_GROUND = 1
+LAYER_OBJECTS = 2
+LAYER_SELECTION = 5
+LAYER_PROJECTILES = 7
+LAYER_UI = 10

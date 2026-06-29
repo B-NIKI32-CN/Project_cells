@@ -1,5 +1,6 @@
 import pygame as pg
-from settings import *
+from ..core.settings import *
+
 
 class Selectedcell(pg.sprite.DirtySprite):
     W = len_cell
@@ -10,7 +11,7 @@ class Selectedcell(pg.sprite.DirtySprite):
         pg.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.visible = True
-        self.layer = 5
+        self.layer = LAYER_SELECTION
         self.x = x
         self.y = y
         self.image = pg.Surface(self.size, pg.SRCALPHA)
