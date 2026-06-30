@@ -104,7 +104,7 @@ def mist_doting3000(tank_group, base, map_matrix, all_tanks, all_bases, team): #
             limites[1][1] = map_len_cells-1
             end_y = map_len_cells - 1 - center[1] - radius
         A[limites[1][0]:limites[1][1]+1, limites[0][0]:limites[0][1]+1] += tank.mist_matrix[start_y:end_y,start_x:end_x]
-    if base != None:
+    if base is not None:
         A[base.sprites()[0].place[1], base.sprites()[0].place[0]] = 1
     mist_sprites = map_matrix[np.where(A == 1)]
     for sprite in mist_sprites:

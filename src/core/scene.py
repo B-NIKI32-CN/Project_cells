@@ -1,14 +1,13 @@
 class Scene:
-    def __init__(self, game):
-        self.game = game
-        pass
-
-    def update(self):
+    def __init__(self):
         pass
 
     def handle_events(self, events):
         pass
 
-    def render():
+    def update(self):
+        pass
+
+    def display(self):
         pass
     

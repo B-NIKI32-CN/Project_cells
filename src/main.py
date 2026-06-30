@@ -89,9 +89,9 @@ while running:
 
     if scene == "menu":
         if to_build_menu:
-            b_start = ui.button.Button(SW/2, SH/2,200, 100, (0,255,255))
-            b_start.edges((255,128,0), 5)
-            b_start.image.blit(text_start, (b_start.size[0]/6, b_start.size[1]/3))
+            b_start = ui.surface.Surface(SW/2 - SW/16, SH/2 - SH/16, SW/8, SH/8, (0,255,255), 1, (255,128,0), 5)
+            # b_start.edges((255,128,0), 5)
+            b_start.image.blit(text_start, (b_start.size[0]/16, b_start.size[1]/3))
             all_buttons_menu.add(b_start)
             to_build_menu = False
             screen.fill((255, 255, 255))
@@ -124,8 +124,8 @@ while running:
             drop_the_curtain = False
 
         if to_build_game_buttons:
-            b_turn = ui.button.Button(SW*15/16, SH*15/16,SW*1/8, SH*1/8, (0,255,255))
-            b_turn.edges((255,128,0), 5)
+            b_turn = ui.surface.Surface(SW*15/16 - SW/16, SH*15/16 - SH/16, SW*1/8, SH*1/8, (0,255,255), 1, (255,128,0), 5)
+            # b_turn.edges((255,128,0), 5)
             b_turn.dirty = 2
             canvas0 = ui.surface.Surface(SW/2, SH*3/80, SW*15/64, SH*8/80, (128,128,128), 1, select_color, int(SW*2/1280))
             canvas1 = ui.surface.Surface(SW*15/16, SH*13.5/16, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280))
@@ -143,7 +143,7 @@ while running:
         dest_mouse_pos = (cur_player.place[0] + r_m_pos[0], cur_player.place[1] + r_m_pos[1]) # положение мыши на карте
         cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
 
-        if cur_player.base == None and not b_turn.rect.collidepoint(r_m_pos): # установка базы игрока
+        if cur_player.base is None and not b_turn.rect.collidepoint(r_m_pos): # установка базы игрока
             if (mouse_click[MOUSE_LMB] and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
                     and tile_map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 mouse_click[MOUSE_LMB] = False
@@ -156,12 +156,12 @@ while running:
                 mist_sprites = map_matrix[np.where(cur_player.mist_matrix == 1)]
 
 
-        if (mouse_click[MOUSE_LMB] and cur_player.base != None and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0]
+        if (mouse_click[MOUSE_LMB] and cur_player.base is not None and cur_player.base.sprites()[0].place[0] == cell_mouse_pos[0]
                 and cur_player.base.sprites()[0].place[1] == cell_mouse_pos[1]) and market_window_is_open == False: # меню выбора танков
             mouse_click[MOUSE_LMB] = False
-            tank_menu = ui.button.Button(SW/2, SH/2, SW/2, SH/2, (66,66,66))
+            tank_menu = ui.surface.Surface(SW/4, SH/4, SW/2, SH/2, (66,66,66), 1, (255,128,0), 5)
             tank_menu.dirty = 2
-            tank_menu.edges((255,128,0), 5)
+            # tank_menu.edges((255,128,0), 5)
             market_window.add(tank_menu)
             for j, tank_for_menu in enumerate(data.ttc.alpha):
                 x = j%3
@@ -169,14 +169,14 @@ while running:
                 market_ui_tanks.add(ui.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
                                                                   SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, cur_player.team, 0, tank_for_menu))
             market_window.add(market_ui_tanks)
-            ext = ui.button.Button(SW*3/4-SW/32, SH/4+SH/32, SW/16, SH/16, (200,0,0))
-            ext.edges((0,255,255), 5)
+            ext = ui.surface.Surface(SW*3/4-SW/16, SH/4, SW/16, SH/16, (200,0,0), 1, (0,255,255), 5)
+            # ext.edges((0,255,255), 5)
             ext.dirty = 2
-            b_take = ui.button.Button(SW*3/4-SW/32, SH*3/4+SH/32, SW/16, SH/16, (128,255,128))
-            b_take.edges((0,128,0), 5)
+            b_take = ui.surface.Surface(SW*3/4-SW/16, SH*3/4, SW/16, SH/16, (128,255,128), 1, (0,128,0), 5)
+            # b_take.edges((0,128,0), 5)
             b_take.dirty = 2
-            b_throw = ui.button.Button(SW*3/4-SW/32-SW/16, SH*3/4+SH/32, SW/16, SH/16, (255,255,128))
-            b_throw.edges((128,128,0), 5)
+            b_throw = ui.surface.Surface(SW*3/4-SW/8, SH*3/4, SW/16, SH/16, (255,255,128), 1, (128,128,0), 5)
+            # b_throw.edges((128,128,0), 5)
             b_throw.dirty = 2
             canvas_ttc = ui.surface.Surface(SW/32, SH/4, SW*7/32, SH/2, (255, 255, 255), 1,
                                             (255, 128, 0), int(SW * 5 / 1280))
@@ -222,6 +222,7 @@ while running:
 
                         select_place = ui.selectedcell.Selectedcell(tank.x, tank.y)
                         select_place.dirty = 2
+                        select_place.layer = LAYER_UI_SELECTION
                         all_selected_in_window.add(select_place)
                         b_take.edges((0, 128, 0), 5)
                         b_throw.edges((128, 128, 0), 5)
@@ -230,6 +231,7 @@ while running:
                     b_take.edges((0, 255, 255), 5)
                     b_throw.edges((128, 128, 0), 5)
                     tank_ready_to_spawn = taken_tank
+                    select_place.change_color((255, 128, 0))
                 if b_throw.rect.collidepoint(r_m_pos) and tank_ready_to_spawn is not None:
 
                     all_selected_taken_in_window.empty()
@@ -254,7 +256,7 @@ while running:
                     taken_tank = None
                     market_window_is_open = False
 
-        if mouse_click[MOUSE_LMB] and not market_window_is_open and tank_ready_to_spawn is not None and cur_player.base != None: # установка выбранного танка
+        if mouse_click[MOUSE_LMB] and not market_window_is_open and tank_ready_to_spawn is not None and cur_player.base is not None: # установка выбранного танка
             mouse_click[MOUSE_LMB] = False
             dist_spawn0 = ((int(cur_player.base.sprites()[0].x) / len_cell - cell_mouse_pos[0]) ** 2
                            + (int(cur_player.base.sprites()[0].y) / len_cell - cell_mouse_pos[1]) ** 2) ** 0.5
@@ -285,7 +287,7 @@ while running:
                                                                        map_matrix, all_tanks, all_bases, cur_player.team)
             if damage_text_timelive > 0:
                 damage_text_timelive = 1
-            if select_cell != None:
+            if select_cell is not None:
                 select_cell.kill()
                 select_cell = None
             taken_tank = None
@@ -298,7 +300,7 @@ while running:
 
         if mouse_click[MOUSE_LMB] and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_window_is_open: # выбор клетки
             mouse_click[MOUSE_LMB] = False
-            if select_cell == None:
+            if select_cell is None:
                 select_cell = ui.selectedcell.Selectedcell(len_cell * cell_mouse_pos[0],
                                                             len_cell * cell_mouse_pos[1])
                 all_selected_cells.add(select_cell)
@@ -390,7 +392,7 @@ while running:
                 dam_text = font32.render(f"{int(dam)}", True, team_to_color[projectile.team])
                 dam_dest = projectile.x, projectile.y
                 damage_text_timelive = FPS*3
-                if canvas_dam != None:
+                if canvas_dam is not None:
                     canvas_dam.kill()
                 canvas_dam = ui.surface.Surface(projectile.x, projectile.y, SW/24,
                                             SH/32, (255, 255, 255), 1, (0,0,0), 2)

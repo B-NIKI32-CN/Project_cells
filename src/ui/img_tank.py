@@ -11,6 +11,7 @@ class ImgTank(pg.sprite.DirtySprite):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 2
+        self.layer = LAYER_UI
         self.ttx = ttx
         self.team = team
         self.orient = orient
