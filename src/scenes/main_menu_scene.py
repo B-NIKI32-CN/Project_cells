@@ -2,45 +2,39 @@ import pygame as pg
 
 from ..core.scene import Scene
 from .. import ui
-from ..core.settings import font48
-from ..core.game import Game
-# from .game_scene import GameScene
+from ..core.settings import *
 
-
-class MainMenuScene(Scene):    
-    text_start = font48.render("Proceed", True, (0, 0, 0))
-    all_buttons_menu = pg.sprite.LayeredDirty()
-    
-
-    def __init__(self, game: Game):
-        super().__init__()
-        self.game = game
-        self.background = pg.Surface((SW, SH))
-        self.background.fill(255,255,255)
-        self.b_start = ui.surface.Surface(SW/2 - SW/16, SH/2 - SH/16, SW/8, SH/8, (0,255,255), 1, (255,128,0), 5)
-        self.b_start.image.blit(self.text_start, (self.b_start.size[0]/16, self.b_start.size[1]/3))
-        self.all_buttons_menu.add(self.b_start)
-
-    def handle_events(self, all_events):
-        for event in all_events:
-            if event.type == pg.K_ESCAPE:
-                running = False
-
-    def update(self):
-        if keys_click[pg.K_ESCAPE]:
-            running = False
-
-        if mouse_click[MOUSE_LMB] and self.b_start.rect.collidepoint(pg.mouse.get_pos()):
-            mouse_click[MOUSE_LMB] = False
-            self.game.set_scene(GameScene)
-            self.all_buttons_menu.empty()
-
-    def display(self, screen):
-        all_buttons_menu.draw(screen, background)
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.game import Game
         
 
-# scene = MainMenuScene(game)
-# while running:
-#         scene.handle_events(all_events)
-#         scene.update(scene)
-#         scene.display(screen)
+class MainMenuScene(Scene):    
+    text_on_button = font48.render("Proceed", True, (0, 0, 0))
+    
+    def __init__(self, game: Game):
+        super().__init__(game)
+        self.background = pg.Surface((SW, SH))
+        self.background.fill((255,255,255))
+        self.button_start_game = ui.surface.Surface(SW/2 - SW/16, SH/2 - SH/16, SW/8, SH/8, (0,255,255), 1, (255,128,0), 5)
+        self.button_start_game.image.blit(self.text_on_button, (self.button_start_game.size[0]/16, self.button_start_game.size[1]/3))
+        self.all_buttons = pg.sprite.LayeredDirty()
+        self.all_buttons.add(self.button_start_game)
+
+    def handle_events(self, all_events: list[pg.event.Event]):
+        for event in all_events:
+            if event.type == pg.K_ESCAPE:
+                self.game.stop()
+
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if self.button_start_game.rect.collidepoint(event.pos):    
+                    
+                    from .game_scene import GameScene
+                    self.game.set_scene(GameScene)
+                    self.all_buttons.empty()
+
+    def update(self):
+        pass
+
+    def display(self, screen: pg.Surface):
+        self.all_buttons.draw(screen, self.background)
