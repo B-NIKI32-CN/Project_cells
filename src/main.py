@@ -16,8 +16,6 @@ pg.display.set_caption("meme")
 clock = pg.time.Clock()
 
 all_walls = pg.sprite.LayeredDirty()
-map_matrix = np.empty((map_len_cells, map_len_cells), dtype=object)
-
 all_cells = pg.sprite.LayeredDirty()
 map_matrix = np.empty((map_len_cells, map_len_cells), dtype=object)
 
