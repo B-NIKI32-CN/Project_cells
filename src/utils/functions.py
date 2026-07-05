@@ -188,3 +188,26 @@ def calclin(pount1, pount2):
 def dist_linpoint(point, solve, equals):
     dist = abs(point[0]*solve[0] + point[1]*solve[1] - equals) / (solve[0]**2 + solve[1]**2)**0.5
     return dist
+
+def calclinspount(pount11, pount12, pount21,pount22):  # точки 11 и 12 от первой прямой, а 21 и 22 от второй прямой
+    solve, equals = calclin(pount11, pount12)
+    solve1, equals1 = calclin(pount21, pount22)
+    A = np.array([solve,
+                  solve1])
+    if solve[0]==solve1[0] or solve[1]==solve1[1]:
+        solve = [0]
+    else:
+        solve = np.linalg.solve(A, np.array([equals,equals1]))
+    return solve
+
+
+def segment_collide(pount11, pount12, pount21,pount22):  # точки 11 и 12 от первого отрезка, а 21 и 22 от второго отрезка
+    xxx = calclinspount(pount11, pount12, pount21, pount22)
+
+    if any(xxx):
+        if (pount11[0] <= xxx[0] <= pount12[0] or pount12[0] <= xxx[0] <= pount11[0]) and (
+                pount11[1] <= xxx[1] <= pount12[1] or pount12[1] <= xxx[1] <= pount11[1]):
+            if (pount21[0] <= xxx[0] <= pount22[0] or pount22[0] <= xxx[0] <= pount21[0]) and (
+                    pount21[1] <= xxx[1] <= pount22[1] or pount22[1] <= xxx[1] <= pount21[1]):
+                return xxx
+    return [0]

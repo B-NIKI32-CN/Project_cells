@@ -32,7 +32,7 @@ class Selectedcell(pg.sprite.DirtySprite):
                      width=self.width + 4)
         pg.draw.line(self.image, color, (0, self.H), (0, 0), width=self.width + 2)
 
-    def go_to(self, x, y):
+    def goto(self, x, y):
         self.x = x
         self.y = y
         self.rect.center = self.x + self.W / 2, self.y + self.H / 2

@@ -16,7 +16,7 @@ class MainMenuScene(Scene):
         super().__init__(game)
         self.background = pg.Surface((SW, SH))
         self.background.fill((255,255,255))
-        self.button_start_game = ui.surface.Surface(SW/2 - SW/16, SH/2 - SH/16, SW/8, SH/8, (0,255,255), 1, (255,128,0), 5)
+        self.button_start_game = ui.uipanel.UIPanel(SW/2 - SW/16, SH/2 - SH/16, SW/8, SH/8, (0,255,255), 1, (255,128,0), 5)
         self.button_start_game.image.blit(self.text_on_button, (self.button_start_game.size[0]/16, self.button_start_game.size[1]/3))
         self.all_buttons = pg.sprite.LayeredDirty()
         self.all_buttons.add(self.button_start_game)

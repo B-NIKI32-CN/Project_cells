@@ -1,35 +1,36 @@
 import pygame as pg
 import numpy as np
-from ..core.settings import *
+from .settings import *
 
 class Player:
-    select = 'player'
+    select = "player"
     speed = player_speed
     vs = map_len_cells * len_cell
     def __init__(self, n, res):
-        self.place = [0,0]
+        self.cam_pos = [0,0]
         self.team = n
         self.res = res
         self.exp = 0
         self.base = None
         self.hp = 1
+        self.spawn_tank_buff = None
         self.tanks = pg.sprite.Group()
-        # self.mists = pg.sprite.Group()
-        self.mist_matrix = np.zeros((map_len_cells, map_len_cells))
+        self.mist_matrix = np.zeros((map_len_cells, map_len_cells), np.int64)
+        
     def move(self, w, a, s, d):
         if w == 1:
-            self.place[1] -= self.speed
-            if self.place[1] < -0*len_cell:
-                self.place[1] = -0*len_cell
+            self.cam_pos[1] -= self.speed
+            if self.cam_pos[1] < -camera_luft*len_cell:
+                self.cam_pos[1] = -camera_luft*len_cell
         if a == 1:
-            self.place[0] -= self.speed
-            if self.place[0] < -0*len_cell:
-                self.place[0] = -0*len_cell
+            self.cam_pos[0] -= self.speed
+            if self.cam_pos[0] < -camera_luft*len_cell:
+                self.cam_pos[0] = -camera_luft*len_cell
         if s == 1:
-            self.place[1] += self.speed
-            if self.place[1] > self.vs-SH+0*len_cell:
-                self.place[1] = self.vs - SH + 0*len_cell
+            self.cam_pos[1] += self.speed
+            if self.cam_pos[1] > self.vs-SH+camera_luft*len_cell:
+                self.cam_pos[1] = self.vs - SH + camera_luft*len_cell
         if d == 1:
-            self.place[0] += self.speed
-            if self.place[0] > self.vs-SW+0*len_cell:
-                self.place[0] = self.vs - SW + 0*len_cell
+            self.cam_pos[0] += self.speed
+            if self.cam_pos[0] > self.vs-SW+camera_luft*len_cell:
+                self.cam_pos[0] = self.vs - SW + camera_luft*len_cell

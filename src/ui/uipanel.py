@@ -2,7 +2,7 @@ import pygame as pg
 from ..core.settings import *
 
 
-class Surface(pg.sprite.DirtySprite):
+class UIPanel(pg.sprite.DirtySprite):
     def __init__(self, x, y, W, H, color, type, color_edge, width):
         pg.sprite.DirtySprite.__init__(self)
         self.dirty = 1

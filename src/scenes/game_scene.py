@@ -2,7 +2,7 @@ import pygame as pg
 import numpy as np
 
 from ..core.scene import Scene
-from .. import ui
+from .. import core, data, obj, ui, utils
 from ..core.settings import *
 from ..core.game import Game
 
@@ -10,50 +10,55 @@ class GameScene(Scene):
 
     def __init__(self, game: Game):
         super().__init__(game)
+        
+        # Состояния
+        self.market_is_open = False
+        self.spawning_tank = False
+        self.curtain_is_raisen = False
+
+        self.selected_cell = None
+
+        # UI на карте
+        self.damage_panel = None
+        self.cell_border = None
+
+        # Данные
+        self.all_sprites = pg.sprite.LayeredDirty(_time_threshold = float("inf"))
+
         self.all_walls = pg.sprite.LayeredDirty()
         self.all_cells = pg.sprite.LayeredDirty()
         self.map_matrix = np.empty((map_len_cells, map_len_cells), dtype=object)
-
-        self.all_selected_cells = pg.sprite.LayeredDirty()
-        self.all_selected_in_window = pg.sprite.LayeredDirty()
-        self.all_selected_taken_in_window = pg.sprite.LayeredDirty()
-        self.all_tanks = pg.sprite.LayeredDirty()
-        self.all_bases = pg.sprite.LayeredDirty()
+        
         self.all_buttons = pg.sprite.LayeredDirty()
-        self.all_projectiles = pg.sprite.LayeredDirty()
-        self.market_window = pg.sprite.LayeredDirty()
-        self.market_ui_tanks = pg.sprite.LayeredDirty()
 
-        self.all_sprites = pg.sprite.LayeredDirty(_time_threshold = 666)
+        # Генерация карты
+        self.tile_map = data.maps.squares.tile_map.copy() # тайловая карта - по сетке
 
-        self.virtual_screen_size = map_len_cells * len_cell
+        utils.functions.builder(self.tile_map, obj.cell.Cell, 0, self.all_cells, self.all_sprites, self.map_matrix)
+        utils.functions.builder(self.tile_map, obj.wall.Wall, 1, self.all_walls, self.all_sprites, self.map_matrix)
 
-        self.players = []
+        virtual_screen_size = map_len_cells * len_cell
+        self.map_screen = pg.Surface((virtual_screen_size, virtual_screen_size))
+        self.background = self.map_screen.copy()
+        self.all_cells.draw(self.background, self.background)
+        self.all_walls.draw(self.background, self.background)
 
-        self.to_build_map = True
-        self.to_build_menu = True
-        self.to_build_game_buttons = True
-        self.selected_tank = None
-        self.players_registered = False
-        self.taken_tank = None
-        self.tank_ready_to_spawn = None
-        # self.selected_tank = False
-        self.to_regist_players = True
-        self.taken_tank = False
-        self.ready_to_spawn_tank = False
-        self.drop_the_curtain = False
-        self.select_cell = None
-        self.canvas_dam = None
+        # UI экран
+        self.button_turn_switch = ui.uipanel.UIPanel(SW*15/16 - SW/16, SH*15/16 - SH/16, SW*1/8, SH*1/8, (0,255,255), 1, (255,128,0), 5)
+        self.button_turn_switch.dirty = 2
+        self.all_buttons.add(self.button_turn_switch)
 
-        self.market_window_is_open = False
+        self.panel_resources = ui.uipanel.UIPanel(SW/2, SH*3/80, SW*15/64, SH*8/80, (128,128,128), 1, select_color, int(SW*2/1280))
+        self.panel_cnt_turns = ui.uipanel.UIPanel(SW*15/16, SH*13.5/16, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280))
+        self.panel_hp = ui.uipanel.UIPanel(SW/64, SH/2, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280))
 
-        self.active_player = 0
-        self.QNT_PLAYERS = 2
-        self.cnt_rounds = 0
-        self.damage_text_timelive = 0
-
-        self.old_fps_val = 0
-
+        # Игроки
+        self.players: list[core.player.Player] = []
+        for i in range(QNT_PLAYERS):
+            players.append(core.player.Player(i, INITIAL_RESOURCES))
+        self.cut_player_id = 0
+        self.cur_player = players[active_player]
+        players_is_init = True
 
     def handle_events(self, all_events: list[pg.event.Event]):
         for event in all_events:
@@ -62,7 +67,7 @@ class GameScene(Scene):
                 self.game.set_scene(MainMenuScene)
 
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if self.button_start_game.rect.collidepoint(event.pos):    
+                if self.button_start_game.rect.collidepoint(event.pos):
                     
                     from .game_scene import GameScene
                     self.game.set_scene(GameScene)

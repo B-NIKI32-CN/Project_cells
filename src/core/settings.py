@@ -22,6 +22,7 @@ cell_width = 5 # только нечетные очень желательно
 # почему это не в Cell ??
 
 player_speed = len_cell
+camera_luft = 4
 
 map_len_cells = 64
 # это так же в свои файлы лучше убрать
@@ -36,6 +37,7 @@ team_to_anticolor = {0:(255, 165, 0), 1:(255,0,0), 2:(0, 255, 0), 3:(128, 0, 128
 
 base_hp = 2000
 
+QNT_PLAYERS = 2
 INITIAL_RESOURCES = 300
 dist_spawn = 2
 
