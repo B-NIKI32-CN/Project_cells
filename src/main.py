@@ -134,8 +134,8 @@ while running:
             players_is_init = True
 
         # координаты мыщки сдвинутые на dest (смещение камеры игрока) снизу написал все
-        dest_mouse_pos = (cur_player.cam_pos[0] + real_mouse_pos[0], cur_player.cam_pos[1] + real_mouse_pos[1]) # положение мыши на карте
-        cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
+        world_mouse_pos = utils.functions.get_world_mouse_pos(cur_player, real_mouse_pos) # положение мыши на карте
+        cell_mouse_pos = utils.functions.get_cell_mouse_pos(world_mouse_pos, len_cell) # положение мыши на карте в количестве полных клеток
 
         if cur_player.base is None and not button_turn_switch.rect.collidepoint(real_mouse_pos): # установка базы игрока
             if (mouse_click[MOUSE_LMB] and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells
@@ -221,7 +221,7 @@ while running:
 
                         market_window.add(panel_ttc)
 
-                        select_place = ui.selectedcell.Selectedcell(ui_tank.x, ui_tank.y)
+                        select_place = ui.cell_border.CellBorder(ui_tank.x, ui_tank.y)
                         select_place.dirty = 2
                         select_place.layer = LAYER_UI_SELECTION
                         all_selected_in_market.add(select_place)
@@ -261,13 +261,13 @@ while running:
             mouse_click[MOUSE_LMB] = False
             dist_spawn0 = ((int(cur_player.base.sprites()[0].x) / len_cell - cell_mouse_pos[0]) ** 2
                            + (int(cur_player.base.sprites()[0].y) / len_cell - cell_mouse_pos[1]) ** 2) ** 0.5
-            if (dist_spawn0 <= dist_spawn and cur_player.res >= tank_ready_to_spawn.ttx[12]
+            if (dist_spawn0 <= dist_spawn and cur_player.resources >= tank_ready_to_spawn.ttx[12]
                     and cur_player.exp >= tank_ready_to_spawn.ttx[13] and tile_map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 utils.functions.spawn_team_obj(
                     tile_map, obj.tank.Tank, 2, all_tanks, cur_player.tanks, all_sprites,
                     cell_mouse_pos, cur_player.team, 1, tank_ready_to_spawn.ttx,
                     cur_player, ui.mist.Mist, tile_map)
-                cur_player.res -= tank_ready_to_spawn.ttx[-4]
+                cur_player.resources -= tank_ready_to_spawn.ttx[-4]
 
                 cur_player.mist_matrix = utils.functions.mist_doting3000(cur_player.tanks, cur_player.base, 
                                                                         map_matrix, all_tanks, all_bases, cur_player.team)
@@ -278,7 +278,7 @@ while running:
             mouse_click[MOUSE_LMB] = False
             if cnt_rounds//QNT_PLAYERS != 0:
                 cur_player.exp += utils.functions.cell_distribution(QNT_PLAYERS, cur_player.team, all_tanks)
-                cur_player.res += utils.functions.get_res(len(cur_player.tanks.sprites()))
+                cur_player.resources += utils.functions.resources_profit(len(cur_player.tanks.sprites()))
             cur_player.tanks.update()
             for ui_tank in all_tanks:
                 ui_tank.drowed_stats = False
@@ -302,7 +302,7 @@ while running:
         if mouse_click[MOUSE_LMB] and 0<=cell_mouse_pos[0]<map_len_cells and 0<=cell_mouse_pos[1]<map_len_cells and not market_is_open: # выбор клетки
             mouse_click[MOUSE_LMB] = False
             if select_cell is None:
-                select_cell = ui.selectedcell.Selectedcell(len_cell * cell_mouse_pos[0],
+                select_cell = ui.cell_border.CellBorder(len_cell * cell_mouse_pos[0],
                                                             len_cell * cell_mouse_pos[1])
                 all_selected_cells.add(select_cell)
                 all_sprites.add(select_cell)
@@ -335,7 +335,7 @@ while running:
 
             if keys_click[pg.K_SPACE]:
                 keys_click[pg.K_SPACE] = False
-                selected_tank.shot(all_projectiles, all_sprites, dest_mouse_pos, obj.projectile.Projectile)
+                selected_tank.shot(all_projectiles, all_sprites, world_mouse_pos, obj.projectile.Projectile)
             if keys_click[pg.K_q]:
                 keys_click[pg.K_q] = False
                 tile_map[selected_tank.place[1], selected_tank.place[0]] = 0
@@ -418,7 +418,7 @@ while running:
         panel_hp.draw(screen)
 
         text_turns = font48.render(f"Turn: {cnt_rounds//QNT_PLAYERS + 1}", True, team_to_color[cur_player.team])
-        text_resouces = font48.render(f"Resources : {cur_player.res}", True, team_to_color[cur_player.team])
+        text_resouces = font48.render(f"Resources : {cur_player.resources}", True, team_to_color[cur_player.team])
         text_exp = font48.render(f"Сapture : {cur_player.exp}", True, team_to_color[cur_player.team])
         screen.blit(text_resouces, (SW/2-SW*7/64, 0))
         screen.blit(text_exp, (SW/2-SW*7/64, SH*3/80))

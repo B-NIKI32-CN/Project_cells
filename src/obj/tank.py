@@ -179,13 +179,13 @@ class Tank(pg.sprite.DirtySprite):
             side=1
         if br_angle <= bullet_angle <= bl_angle:
             side=2
-        if bl_angle <= bullet_angle or bullet_angle <= tl_angle:
+        else: #bl_angle <= bullet_angle or bullet_angle <= tl_angle
             side=3
         if side == self.orient:
             arm = self.a[0]
         if abs(side-self.orient) == 1 or abs(side-self.orient) == 3:
             arm = self.a[1]
-        if abs(side-self.orient) == 2:
+        else:  #abs(side-self.orient) == 2
             arm = self.a[2]
         if side == 0 or side == 2:
             arm /= abs(sin(bullet_angle))

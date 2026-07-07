@@ -2,7 +2,7 @@ import pygame as pg
 from ..core.settings import *
 
 
-class Selectedcell(pg.sprite.DirtySprite):
+class CellBorder(pg.sprite.DirtySprite): # было Selectedcell
     W = len_cell
     H = W
     size = (W, H)
@@ -32,7 +32,7 @@ class Selectedcell(pg.sprite.DirtySprite):
                      width=self.width + 4)
         pg.draw.line(self.image, color, (0, self.H), (0, 0), width=self.width + 2)
 
-    def goto(self, x, y):
-        self.x = x
-        self.y = y
+    def goto(self, pos):
+        self.x = len_cell * pos[0]
+        self.y = len_cell * pos[1]
         self.rect.center = self.x + self.W / 2, self.y + self.H / 2

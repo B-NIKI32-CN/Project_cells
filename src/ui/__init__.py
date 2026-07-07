@@ -1,9 +1,10 @@
-from . import button, img_tank, mist, selectedcell, uipanel
+from . import button, cell_border, img_tank, market, mist, uipanel
 
 __all__ = [
     "button",
     "img_tank",
+    "market",
     "mist",
-    "selectedcell",
+    "cell_border",
     "uipanel",
 ]

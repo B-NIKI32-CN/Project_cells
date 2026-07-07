@@ -1,7 +1,12 @@
 import numpy as np
+import pygame as pg
 from math import sin, pi, atan
 
 from ..core.settings import *
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.player import Player
 
 def builder(map, obj, obj_ind, obj_group, all_sprites, obj_group_matrix):
     poses = np.where(map == obj_ind)
@@ -118,7 +123,7 @@ def mist_doting3000(tank_group, base, map_matrix, all_tanks, all_bases, team): #
         base.change_misty(map_matrix[base.place[1], base.place[0]].misty)
     return A
 
-def cell_distribution(n, team, group): # функция присвоения клетки команде, нужна для начисления exp в конце хода (равно количеству "захваченных клеток")
+def cell_distribution(n, team, group): # функция присвоения клетки команде, нужна для начисления capt в конце хода (равно количеству "захваченных клеток")
     matrixs = [0] * n
     dopusk = [1] * n
     bool_matrix = np.ones((map_len_cells, map_len_cells), dtype=bool)
@@ -159,8 +164,8 @@ def damage(a, p, d0):
     d = k * d0
     return d
 
-def get_res(n): # функция считающая сколько начислить ресурсов
-    res = (1-n/12) * 40
+def resources_profit(tanks_cnt): # функция считающая сколько начислить ресурсов
+    res = (1-tanks_cnt/12) * 40
     return int(res)
 
 def calclin(pount1, pount2):
@@ -211,3 +216,19 @@ def segment_collide(pount11, pount12, pount21,pount22):  # точки 11 и 12 �
                     pount21[1] <= xxx[1] <= pount22[1] or pount22[1] <= xxx[1] <= pount21[1]):
                 return xxx
     return [0]
+
+
+def get_world_mouse_pos(player: Player, window_mouse_pos: tuple[int, int]):
+    x = player.cam_pos[0] + window_mouse_pos[0]
+    y = player.cam_pos[1] + window_mouse_pos[1]
+    return (x, y)
+
+def get_cell_mouse_pos(player: Player, window_mouse_pos: tuple[int, int], len_cell):
+    world_mouse_pos = get_world_mouse_pos(player, window_mouse_pos)
+    x = int(world_mouse_pos[0] // len_cell)
+    y = int(world_mouse_pos[1] // len_cell)
+    return (x, y)
+
+
+def collidespritepoint(sprite, point):
+    return sprite.rect.collidepoint(point)
