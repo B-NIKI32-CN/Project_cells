@@ -2,6 +2,7 @@ import pygame as pg
 import numpy as np
 
 from ..obj.base import Base
+from ..obj.tank import Tank
 from .settings import *
 
 class Player:
@@ -14,7 +15,7 @@ class Player:
         self.resources = res
         self.exp = 0
         self.base: Base | None = None
-        self.selected_tank = None
+        self.selected_tank: Tank | None = None
         self.hp = 1
         self.spawn_tank_buff = None
         self.tanks = pg.sprite.LayeredDirty()

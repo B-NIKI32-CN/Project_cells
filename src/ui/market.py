@@ -1,34 +1,31 @@
 import pygame as pg
 
-from .. import core, data, obj, ui, utils
 from ..core.settings import *
+from ..utils.functions import collidespritepoint
+from ..data import ttc
+from ..ui import cell_border, img_tank, uipanel
 
 
 
 class Market():
-    panel_menu = ui.uipanel.UIPanel(SW/4, SH/4, SW/2, SH/2, (66,66,66), 1, (255,128,0), 5)
-    panel_menu.dirty = 2
-    button_exit_market = ui.uipanel.UIPanel(SW*3/4-SW/16, SH/4, SW/16, SH/16, (200,0,0), 1, (0,255,255), 5)
-    button_exit_market.dirty = 2
-    button_confirm = ui.uipanel.UIPanel(SW*3/4-SW/16, SH*3/4, SW/16, SH/16, (128,255,128), 1, (0,128,0), 5)
-    button_confirm.dirty = 2
-    button_drop_confirm = ui.uipanel.UIPanel(SW*3/4-SW/8, SH*3/4, SW/16, SH/16, (255,255,128), 1, (128,128,0), 5)
-    button_drop_confirm.dirty = 2
+    panel_menu = uipanel.UIPanel(SW/4, SH/4, SW/2, SH/2, (66,66,66), 1, (255,128,0), 5)
+    button_exit_market = uipanel.UIPanel(SW*3/4-SW/16, SH/4, SW/16, SH/16, (200,0,0), 1, (0,255,255), 5)
+    button_confirm = uipanel.UIPanel(SW*3/4-SW/16, SH*3/4, SW/16, SH/16, (128,255,128), 1, (0,128,0), 5)
+    button_drop_confirm = uipanel.UIPanel(SW*3/4-SW/8, SH*3/4, SW/16, SH/16, (255,255,128), 1, (128,128,0), 5)
     
     def __init__(self, scene, player):
-        self.panel_ttc = ui.uipanel.UIPanel(SW/32, SH/4, SW*7/32, SH/2, (255, 255, 255), 1,
+        self.panel_ttc = uipanel.UIPanel(SW/32, SH/4, SW*7/32, SH/2, (255, 255, 255), 1,
                                     (255, 128, 0), int(SW * 5 / 1280))
-        self.panel_ttc.dirty = 2
         self.taken_tank_menu = None
         self.tank_ready_to_spawn = None
         self.market_sprites = pg.sprite.LayeredDirty() # была market_window
         self.market_ui_tanks = pg.sprite.LayeredDirty()
         self.all_border_in_market = pg.sprite.LayeredDirty() # было all_selected_in_window
 
-        for j, tank_for_menu in enumerate(data.ttc.alpha):
+        for j, tank_for_menu in enumerate(ttc.alpha):
                 x = j%3
                 y = j//3
-                self.market_ui_tanks.add(ui.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
+                self.market_ui_tanks.add(img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
                                                                   SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, player.team, 0, tank_for_menu))
         self.market_sprites.add(self.market_ui_tanks)
         self.market_sprites.add(self.market_ui_tanks, self.button_exit_market, self.button_confirm,
@@ -39,8 +36,7 @@ class Market():
     def handle_event(self, event): # выбор танков в соответственном меню
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             real_mouse_pos = event.pos
-            dest_mouse_pos = (self.player.place[0] + real_mouse_pos[0], self.player.place[1] + real_mouse_pos[1])   # положение мыши на карте
-            # cell_mouse_pos = (int(dest_mouse_pos[0] // len_cell) , int(dest_mouse_pos[1] // len_cell)) # положение мыши на карте в количестве полных клеток
+             
             for ui_tank in self.market_ui_tanks:
                 if ui_tank.rect.collidepoint(real_mouse_pos):
                     self.market_sprites.remove(self.all_border_in_market)
@@ -60,9 +56,8 @@ class Market():
                         font32.render(f"Fire distance: {self.taken_tank_menu.ttx[11]}", True, (0, 0, 0)),
                     )
 
-                    self.panel_ttc = ui.uipanel.UIPanel(SW / 32, SH / 4, SW * 7 / 32, SH / 2, (255, 255, 255), 1,
+                    self.panel_ttc = uipanel.UIPanel(SW / 32, SH / 4, SW * 7 / 32, SH / 2, (255, 255, 255), 1,
                                                             (255, 128, 0), int(SW * 5 / 1280))
-                    self.panel_ttc.dirty = 2
                     text_indentation = 10
                     for characteristic_text in text_ttc:
                         self.panel_ttc.image.blit(characteristic_text, (10, text_indentation))
@@ -80,7 +75,7 @@ class Market():
 
                     self.market_sprites.add(self.panel_ttc)
 
-                    self.border = ui.cell_border.CellBorder(ui_tank.x, ui_tank.y)
+                    self.border = cell_border.CellBorder(ui_tank.x, ui_tank.y)
                     self.border.dirty = 2
                     self.border.layer = LAYER_UI_SELECTION
                     self.all_border_in_market.add(self.border)
@@ -88,25 +83,30 @@ class Market():
                     self.button_drop_confirm.edges((128, 128, 0), 5)
             self.market_sprites.add(self.all_border_in_market)
                 
-            if self.button_confirm.rect.collidepoint(real_mouse_pos) and self.taken_tank_menu is not None:
+            if collidespritepoint(self.button_confirm, event.pos) and self.taken_tank_menu is not None:
                 self.button_confirm.edges((0, 255, 255), 5)
                 self.button_drop_confirm.edges((128, 128, 0), 5)
                 self.border.change_color((255, 128, 0))
 
                 self.tank_ready_to_spawn = self.taken_tank_menu
                 
-            if self.button_drop_confirm.rect.collidepoint(real_mouse_pos) and self.tank_ready_to_spawn is not None:
+            if collidespritepoint(self.button_drop_confirm, event.pos) and self.tank_ready_to_spawn is not None:
                 self.button_drop_confirm.edges((0, 255, 255), 5)
                 self.button_confirm.edges((0, 128, 0), 5)
                 self.border.change_color((255, 128, 0))
 
                 self.tank_ready_to_spawn = None
 
-            if self.button_exit_market.rect.collidepoint(real_mouse_pos):
+            if collidespritepoint(self.button_exit_market, event.pos):
                 self.player.spawn_tank_buff = self.tank_ready_to_spawn
                 self.scene.market_close()
+
                 # self.market_sprites.empty()
                 # self.all_selected_in_market.empty()
                 # self.all_taken_in_market.empty()
                 # self.taken_tank_menu = None
+                
+    def draw(self, screen):
+        self.market_sprites.draw(screen)
+        self.all_border_in_market.draw(screen)
 

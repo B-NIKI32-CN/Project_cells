@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pygame as pg
 
 from ..core.scene import Scene
@@ -23,7 +25,10 @@ class MainMenuScene(Scene):
 
     def handle_events(self, all_events: list[pg.event.Event]):
         for event in all_events:
-            if event.type == pg.K_ESCAPE:
+            if event.type == pg.QUIT:
+                self.game.stop()
+
+            elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 self.game.stop()
 
             elif event.type == pg.MOUSEBUTTONDOWN:

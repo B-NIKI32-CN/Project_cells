@@ -1,5 +1,7 @@
+from __future__ import annotations
+
+# import pygame as pg
 import numpy as np
-import pygame as pg
 from math import sin, pi, atan
 
 from ..core.settings import *
