@@ -1,33 +1,40 @@
+from __future__ import annotations
+
 import pygame as pg
 import numpy as np
 from math import sin, cos, pi, radians, atan
 
 from ..core.settings import *
 from ..utils.functions import angle_vector, damage
+from ..data.maps import ID_TANK
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.player import Player
 
 class Tank(pg.sprite.DirtySprite):
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team, orient, ttc, player, Mist, map):
+    def __init__(self, pos, orient, ttc, player: Player, map):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 1
         self.layer = LAYER_OBJECTS
         self.misty = 0
         self.ttc = ttc
-        self.team = team
-        self.player = player
+        self.team = player.team
+        # self.player = player
+        player.tanks.add(self)
         self.orient = orient
-        self.Mist = Mist
         self.map = map
-        self.x = x
-        self.y = y
         self.drowed_stats = False
-        self.place = [self.x//self.W, self.y//self.H]
+        self.place = list(pos)
+        self.x = self.place[0] * self.W
+        self.y = self.place[1] * self.H
+        self.map[self.place[1], self.place[0]] = ID_TANK
         self.image = pg.Surface(self.size, pg.SRCALPHA)
-        self.imageOrig = self.image
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W / 2, self.y + self.H / 2
         self.image.fill(team_to_color[self.team])

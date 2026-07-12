@@ -98,6 +98,8 @@ class Projectile(pg.sprite.DirtySprite):
                 if b.rect.collidepoint(self.rect.center):
                     damage = self.dam
                     self.die = 1
+                    base[0].damage(self.dam)
+                    # print("база урон")
                     return damage
                 sides = [b.rect.topleft, b.rect.topright, b.rect.bottomleft, b.rect.bottomright]
                 projectile_last_pos = self.x - self.dx*0.5, self.y - self.dy*0.5
@@ -105,21 +107,29 @@ class Projectile(pg.sprite.DirtySprite):
                 if any(top_point):
                     damage = self.dam
                     self.die = 1
+                    base[0].damage(self.dam)
+                    # print("база урон")
                     return damage
                 right_point = segment_collide((self.x, self.y), projectile_last_pos, sides[1], sides[2])
                 if any(right_point):
                     damage = self.dam
                     self.die = 1
+                    base[0].damage(self.dam)
+                    # print("база урон")
                     return damage
                 bottom_point = segment_collide((self.x, self.y), projectile_last_pos, sides[2], sides[3])
                 if any(bottom_point):
                     damage = self.dam
                     self.die = 1
+                    base[0].damage(self.dam)
+                    # print("база урон")
                     return damage
                 left_point = segment_collide((self.x, self.y), projectile_last_pos, sides[3], sides[0])
                 if any(left_point):
                     damage = self.dam
                     self.die = 1
+                    base[0].damage(self.dam)
+                    # print("база урон")
                     return damage
         return 0
 

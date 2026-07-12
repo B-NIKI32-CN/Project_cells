@@ -12,6 +12,10 @@ class Market():
     button_exit_market = uipanel.UIPanel(SW*3/4-SW/16, SH/4, SW/16, SH/16, (200,0,0), 1, (0,255,255), 5)
     button_confirm = uipanel.UIPanel(SW*3/4-SW/16, SH*3/4, SW/16, SH/16, (128,255,128), 1, (0,128,0), 5)
     button_drop_confirm = uipanel.UIPanel(SW*3/4-SW/8, SH*3/4, SW/16, SH/16, (255,255,128), 1, (128,128,0), 5)
+
+    button_exit_market.layer = LAYER_MARKET_BUTTONS
+    button_confirm.layer = LAYER_MARKET_BUTTONS
+    button_drop_confirm.layer = LAYER_MARKET_BUTTONS
     
     def __init__(self, scene, player):
         self.panel_ttc = uipanel.UIPanel(SW/32, SH/4, SW*7/32, SH/2, (255, 255, 255), 1,
@@ -25,8 +29,11 @@ class Market():
         for j, tank_for_menu in enumerate(ttc.alpha):
                 x = j%3
                 y = j//3
-                self.market_ui_tanks.add(img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
-                                                                  SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, player.team, 0, tank_for_menu))
+                tank_img = img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,
+                                                                  SH / 2 - SH / 8 + y * SH / 8 - len_cell / 2, player.team, 0, tank_for_menu)
+                tank_img.layer = LAYER_TANK_IMG
+                self.market_ui_tanks.add(tank_img)
+
         self.market_sprites.add(self.market_ui_tanks)
         self.market_sprites.add(self.market_ui_tanks, self.button_exit_market, self.button_confirm,
                                 self.button_drop_confirm, self.panel_menu, self.panel_ttc)
@@ -99,7 +106,9 @@ class Market():
 
             if collidespritepoint(self.button_exit_market, event.pos):
                 self.player.spawn_tank_buff = self.tank_ready_to_spawn
-                self.scene.market_close()
+                if self.tank_ready_to_spawn is not None:
+                    self.scene.is_spawning_tank = True
+                self.scene.close_market()
 
                 # self.market_sprites.empty()
                 # self.all_selected_in_market.empty()

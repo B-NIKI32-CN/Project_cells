@@ -14,7 +14,7 @@ class DamagePanel(UIPanel):
         self.image.blit(self.dam_text, (SW/256,SH/256))
 
     def update(self):
-        self.timelive -= 1
+        self.time_live -= 1
         if self.time_live == 0:
             self.kill()
 

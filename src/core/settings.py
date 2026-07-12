@@ -30,7 +30,7 @@ map_len_cells = 64
 projectile_size = 4
 projectile_speed = 2.5
 
-select_color = (0,255,255) # не пон
+color_select = (0,255,255) # не пон
 
 team_to_color = {0:(0,0,255), 1:(0,255,0), 2:(255, 0, 0), 3:(255, 255, 0), 4:(255, 0, 255)}
 team_to_anticolor = {0:(255, 165, 0), 1:(255,0,0), 2:(0, 255, 0), 3:(128, 0, 128), 4:(255, 0, 255)}
@@ -39,7 +39,7 @@ base_hp = 2000
 
 QNT_PLAYERS = 2
 INITIAL_RESOURCES = 300
-dist_spawn = 2
+max_spawn_distance = 2
 
 # слои
 LAYER_GROUND = 1
@@ -47,6 +47,8 @@ LAYER_OBJECTS = 2
 LAYER_SELECTION = 5
 LAYER_PROJECTILES = 7
 LAYER_UI = 10
+LAYER_TANK_IMG = 11
+LAYER_MARKET_BUTTONS = 11
 LAYER_UI_SELECTION = 13
 
 #время

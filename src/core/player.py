@@ -3,6 +3,7 @@ import numpy as np
 
 from ..obj.base import Base
 from ..obj.tank import Tank
+from ..ui.img_tank import ImgTank
 from .settings import *
 
 class Player:
@@ -17,7 +18,7 @@ class Player:
         self.base: Base | None = None
         self.selected_tank: Tank | None = None
         self.hp = 1
-        self.spawn_tank_buff = None
+        self.spawn_tank_buff: ImgTank | None = None
         self.tanks = pg.sprite.LayeredDirty()
         self.mist_matrix = np.zeros((map_len_cells, map_len_cells), np.int64)
         

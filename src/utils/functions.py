@@ -29,19 +29,19 @@ def mist_builder(map, obj, objgroup):
         y = poses[0][pos] * obj.H
         objgroup.add(obj(x, y))
 
-def spawn_team_obj(map, obj, objind, objgroup, objgroup_player, all_sprites, sel_cell_pos, *info):
-    if map[sel_cell_pos[1], sel_cell_pos[0]] == 0:
-        obj_cur = obj(sel_cell_pos[0] * len_cell, sel_cell_pos[1] * len_cell, *info)
-        objgroup.add(obj_cur)
-        objgroup_player.add(obj_cur)
-        all_sprites.add(obj_cur)
-        map[sel_cell_pos[1], sel_cell_pos[0]] = objind
+# def spawn_team_obj(map, obj, objind, objgroup, objgroup_player, all_sprites, sel_cell_pos, *info):
+#     if map[sel_cell_pos[1], sel_cell_pos[0]] == 0:
+#         obj_cur = obj(sel_cell_pos[0] * len_cell, sel_cell_pos[1] * len_cell, *info)
+#         objgroup.add(obj_cur)
+#         objgroup_player.add(obj_cur)
+#         all_sprites.add(obj_cur)
+#         map[sel_cell_pos[1], sel_cell_pos[0]] = objind
 
-def spawn_obj(map, obj, objind, objgroup, sel_cell_pos, *info):
-    if map[sel_cell_pos[1], sel_cell_pos[0]] == 0:
-        odj = obj(sel_cell_pos[0] * len_cell, sel_cell_pos[1] * len_cell, *info)
-        objgroup.add(odj)
-        map[sel_cell_pos[1], sel_cell_pos[0]] = objind
+# def spawn_obj(map, obj, objind, objgroup, sel_cell_pos, *info):
+#     if map[sel_cell_pos[1], sel_cell_pos[0]] == 0:
+#         odj = obj(sel_cell_pos[0] * len_cell, sel_cell_pos[1] * len_cell, *info)
+#         objgroup.add(odj)
+#         map[sel_cell_pos[1], sel_cell_pos[0]] = objind
 
 def angle_vector(x, y):
     if x == 0:
@@ -112,7 +112,7 @@ def mist_doting3000(tank_group, base, map_matrix, all_tanks, all_bases, team): #
             end_y = map_len_cells - 1 - center[1] - radius
         A[limites[1][0]:limites[1][1]+1, limites[0][0]:limites[0][1]+1] += tank.mist_matrix[start_y:end_y,start_x:end_x]
     if base is not None:
-        A[base.sprites()[0].place[1], base.sprites()[0].place[0]] = 1
+        A[base.place[1], base.place[0]] = 1
     mist_sprites = map_matrix[np.where(A == 1)]
     for sprite in mist_sprites:
         sprite.change_misty(0)
@@ -230,7 +230,6 @@ def get_cell_mouse_pos(player: Player, window_mouse_pos: tuple[int, int], len_ce
     x = int(world_mouse_pos[0] // len_cell)
     y = int(world_mouse_pos[1] // len_cell)
     return (x, y)
-
 
 def collidespritepoint(sprite, point):
     return sprite.rect.collidepoint(point)

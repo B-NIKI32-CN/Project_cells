@@ -121,7 +121,7 @@ while running:
             button_turn_switch = ui.uipanel.UIPanel(SW*15/16 - SW/16, SH*15/16 - SH/16, SW*1/8, SH*1/8, (0,255,255), 1, (255,128,0), 5)
             # button_turn_switch.edges((255,128,0), 5)
             button_turn_switch.dirty = 2
-            panel_resources = ui.uipanel.UIPanel(SW/2, SH*3/80, SW*15/64, SH*8/80, (128,128,128), 1, select_color, int(SW*2/1280))
+            panel_resources = ui.uipanel.UIPanel(SW/2, SH*3/80, SW*15/64, SH*8/80, (128,128,128), 1, color_select, int(SW*2/1280))
             panel_cnt_turns = ui.uipanel.UIPanel(SW*15/16, SH*13.5/16, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280))
             panel_hp = ui.uipanel.UIPanel(SW/64, SH/2, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280))
             all_buttons_game.add(button_turn_switch)
@@ -261,7 +261,7 @@ while running:
             mouse_click[MOUSE_LMB] = False
             dist_spawn0 = ((int(cur_player.base.sprites()[0].x) / len_cell - cell_mouse_pos[0]) ** 2
                            + (int(cur_player.base.sprites()[0].y) / len_cell - cell_mouse_pos[1]) ** 2) ** 0.5
-            if (dist_spawn0 <= dist_spawn and cur_player.resources >= tank_ready_to_spawn.ttx[12]
+            if (dist_spawn0 <= max_spawn_distance and cur_player.resources >= tank_ready_to_spawn.ttx[12]
                     and cur_player.exp >= tank_ready_to_spawn.ttx[13] and tile_map[cell_mouse_pos[1], cell_mouse_pos[0]] == 0):
                 utils.functions.spawn_team_obj(
                     tile_map, obj.tank.Tank, 2, all_tanks, cur_player.tanks, all_sprites,

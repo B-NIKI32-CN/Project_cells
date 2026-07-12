@@ -1,5 +1,6 @@
 import pygame as pg
 from ..core.settings import *
+from ..data.maps import ID_BASE
 
 
 class Base(pg.sprite.DirtySprite):
@@ -8,17 +9,19 @@ class Base(pg.sprite.DirtySprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team, player):
+    def __init__(self, pos, player, tile_map):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 1
         self.layer = LAYER_OBJECTS
         self.misty = 0
-        self.team = team
+        self.team = player.team
         self.player = player
-        self.x = x
-        self.y = y
-        self.place = [self.x // self.W, self.y // self.H]
+        self.player.base = self
+        self.place = pos
+        self.x = self.place[0] * self.W
+        self.y = self.place[1] * self.H
+        tile_map[self.place[1], self.place[0]] = ID_BASE
         self.image = pg.Surface(self.size, pg.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W/2, self.y + self.H/2
@@ -31,14 +34,20 @@ class Base(pg.sprite.DirtySprite):
                      width=cell_width + 2)
         pg.draw.line(self.image, team_to_anticolor[self.team], (0, self.H), (0, 0), width=cell_width)
 
-    def draw(self, surface):
-        surface.blit(self.image, (self.x, self.y))
-        color = team_to_anticolor[self.team]
-        hp_draw = font16.render(f"{self.hp}", True, color)
-        hp_draw.set_alpha(200)
-        surface.blit(hp_draw, (self.x + self.delta / 2, self.y + self.delta / 2))
+        self.drowed_stats = False
+        self.imageOrig = self.image.copy()
+        
+        self.damage(0)
+
+    # def draw(self, surface):
+    #     surface.blit(self.image, (self.x, self.y))
+    #     color = team_to_anticolor[self.team]
+    #     hp_draw = font16.render(f"{self.hp}", True, color)
+    #     hp_draw.set_alpha(200)
+    #     surface.blit(hp_draw, (self.x + self.delta / 2, self.y + self.delta / 2))
 
     def damage(self, damage):
+        self.drowed_stats = False
         self.hp -= damage
         self.player.hp = self.hp
         if self.hp <= 0:
@@ -53,3 +62,14 @@ class Base(pg.sprite.DirtySprite):
                 self.visible = False
             else:
                 self.visible = True
+    
+    def draw_stats(self):
+        if not self.drowed_stats:
+            color = team_to_anticolor[self.team]
+            hp_draw = font16.render(f"{int(self.hp)}", True, color)
+            hp_draw.set_alpha(200)
+            self.dirty = 1
+            self.image = self.imageOrig.copy()
+            self.image.blit(hp_draw, (self.delta/2+self.W*0.1, self.delta/2))
+
+        self.drowed_stats = True

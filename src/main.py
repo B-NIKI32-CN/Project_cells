@@ -18,9 +18,9 @@ game = Game(screen, MainMenuScene)
 while game.is_running():
     game.iteration()
     
-    if clock.get_fps() != old_fps_val:
-        old_fps_val = clock.get_fps()
-        print(old_fps_val)
+    # if clock.get_fps() != old_fps_val:
+    #     old_fps_val = clock.get_fps()
+    #     print(old_fps_val)
 
     clock.tick(FPS)
     pg.display.flip()
