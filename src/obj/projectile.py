@@ -64,7 +64,7 @@ class Projectile(pg.sprite.DirtySprite):
         if len(tank) != 0:
             for t in tank:
                 if team_tanks.has(t) == False:
-                    dist = dist_linpoint(t.rect.center, self.solve, self.equals)
+                    # dist = dist_linpoint(t.rect.center, self.solve, self.equals)
                     if t.rect.collidepoint(self.rect.center):
                         dam = t.get_bullet(self.angle, self.rect.center, self.dam, self.pen)
                         self.die = 1

@@ -104,8 +104,8 @@ class Tank(pg.sprite.DirtySprite):
     def move(self, key):
         if key not in (pg.K_w, pg.K_a, pg.K_s, pg.K_d):
             return False
-        
-        self.map[self.place[1], self.place[0]] = 0
+
+        old_place = self.place.copy()
         if key == pg.K_w:
             if self.movement_balance_list[0] <= 0:
                 return False
@@ -153,6 +153,7 @@ class Tank(pg.sprite.DirtySprite):
             self.orient = (self.orient + 1) % 4
             self.movement_balance_list[1] -= 1
 
+        self.map[old_place[1], old_place[0]] = 0
         self.map[self.place[1], self.place[0]] = 2
         self.image = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
         self.image_for_stats = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
@@ -193,15 +194,15 @@ class Tank(pg.sprite.DirtySprite):
                 bullet_angle -= 2 * pi
         if tl_angle <= bullet_angle <= tr_angle:
             side=0
-        if tr_angle <= bullet_angle <= br_angle:
+        elif tr_angle <= bullet_angle <= br_angle:
             side=1
-        if br_angle <= bullet_angle <= bl_angle:
+        elif br_angle <= bullet_angle <= bl_angle:
             side=2
         else: #bl_angle <= bullet_angle or bullet_angle <= tl_angle
             side=3
         if side == self.orient:
             arm = self.armor_list[0]
-        if abs(side-self.orient) == 1 or abs(side-self.orient) == 3:
+        elif abs(side-self.orient) == 1 or abs(side-self.orient) == 3:
             arm = self.armor_list[1]
         else:  #abs(side-self.orient) == 2
             arm = self.armor_list[2]
@@ -210,10 +211,10 @@ class Tank(pg.sprite.DirtySprite):
         else:
             arm /= abs(cos(bullet_angle))
 
-        print(f"side: {side}, arm: {arm}\n tl_angle: {180/pi*tl_angle}\n"
-              f" tr_angle: {180/pi*tr_angle}\n br_angle: {180/pi*br_angle}\n"
-              f" bl_angle: {180/pi*bl_angle}\n bullet_angle: {180/pi*bullet_angle}\n"
-              f"rect_b: {self.rect.bottom}, bul_pos: {bullet_pos}\n\n\n ")
+        # print(f"side: {side}, arm: {arm}\n tl_angle: {180/pi*tl_angle}\n"
+        #       f" tr_angle: {180/pi*tr_angle}\n br_angle: {180/pi*br_angle}\n"
+        #       f" bl_angle: {180/pi*bl_angle}\n bullet_angle: {180/pi*bullet_angle}\n"
+        #       f"rect_b: {self.rect.bottom}, bul_pos: {bullet_pos}\n\n")
         dam = damage(arm, bullet_pen, bullet_dam)
         self.hp -= dam
         if self.hp <= 0:

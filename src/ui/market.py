@@ -10,11 +10,11 @@ from ..ui import cell_border, img_tank, uipanel
 class Market():
     panel_menu = uipanel.UIPanel(SW/4, SH/4, SW/2, SH/2, (66,66,66), 1, (255,128,0), 5)
     button_exit_market = uipanel.UIPanel(SW*3/4-SW/16, SH/4, SW/16, SH/16, (200,0,0), 1, (0,255,255), 5)
-    button_confirm = uipanel.UIPanel(SW*3/4-SW/16, SH*3/4, SW/16, SH/16, (128,255,128), 1, (0,128,0), 5)
-    button_drop_confirm = uipanel.UIPanel(SW*3/4-SW/8, SH*3/4, SW/16, SH/16, (255,255,128), 1, (128,128,0), 5)
+    # button_confirm = uipanel.UIPanel(SW*3/4-SW/16, SH*3/4, SW/16, SH/16, (128,255,128), 1, (0,128,0), 5)
+    button_drop_confirm = uipanel.UIPanel(SW*3/4-SW/8 + SW/16, SH*3/4 - SH/16, SW/16, SH/16, (255,255,128), 1, (128,128,0), 5)
 
     button_exit_market.layer = LAYER_MARKET_BUTTONS
-    button_confirm.layer = LAYER_MARKET_BUTTONS
+    # button_confirm.layer = LAYER_MARKET_BUTTONS
     button_drop_confirm.layer = LAYER_MARKET_BUTTONS
     
     def __init__(self, scene, player):
@@ -35,20 +35,25 @@ class Market():
                 self.market_ui_tanks.add(tank_img)
 
         self.market_sprites.add(self.market_ui_tanks)
-        self.market_sprites.add(self.market_ui_tanks, self.button_exit_market, self.button_confirm,
-                                self.button_drop_confirm, self.panel_menu, self.panel_ttc)
+        self.market_sprites.add(self.market_ui_tanks, self.button_exit_market,
+                                self.button_drop_confirm, self.panel_menu, self.panel_ttc) #, self.button_confirm
         self.player = player
         self.scene = scene
         
     def handle_event(self, event): # выбор танков в соответственном меню
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             real_mouse_pos = event.pos
-             
+            # перебор танков
             for ui_tank in self.market_ui_tanks:
+                # поиск возможно нажатого танка
                 if ui_tank.rect.collidepoint(real_mouse_pos):
                     self.market_sprites.remove(self.all_border_in_market)
                     self.all_border_in_market.empty()
                     self.taken_tank_menu = ui_tank
+                    if self.tank_ready_to_spawn == self.taken_tank_menu:
+                        self.drop()
+                        return
+
                     self.panel_ttc.kill()
 
                     text_ttc = (
@@ -85,37 +90,61 @@ class Market():
                     self.border = cell_border.CellBorder(ui_tank.x, ui_tank.y)
                     self.border.dirty = 2
                     self.border.layer = LAYER_UI_SELECTION
-                    self.all_border_in_market.add(self.border)
-                    self.button_confirm.edges((0, 128, 0), 5)
+                    self.all_border_in_market.add(self.border)   #self.button_confirm.edges((0, 128, 0), 5)
                     self.button_drop_confirm.edges((128, 128, 0), 5)
-            self.market_sprites.add(self.all_border_in_market)
-                
-            if collidespritepoint(self.button_confirm, event.pos) and self.taken_tank_menu is not None:
-                self.button_confirm.edges((0, 255, 255), 5)
-                self.button_drop_confirm.edges((128, 128, 0), 5)
-                self.border.change_color((255, 128, 0))
+                    self.market_sprites.add(self.all_border_in_market)
+                    
+                    self.button_drop_confirm.edges((128, 128, 0), 5)
+                    self.tank_ready_to_spawn = self.taken_tank_menu
 
-                self.tank_ready_to_spawn = self.taken_tank_menu
+                    return
+                
+            # if collidespritepoint(self.button_confirm, event.pos) and self.taken_tank_menu is not None:
+            #     self.button_confirm.edges((0, 255, 255), 5)
+            #     self.button_drop_confirm.edges((128, 128, 0), 5)
+            #     self.border.change_color((255, 128, 0))
+
+            #     self.tank_ready_to_spawn = self.taken_tank_menu
+
+            #     return
                 
             if collidespritepoint(self.button_drop_confirm, event.pos) and self.tank_ready_to_spawn is not None:
-                self.button_drop_confirm.edges((0, 255, 255), 5)
-                self.button_confirm.edges((0, 128, 0), 5)
-                self.border.change_color((255, 128, 0))
+                # self.button_confirm.edges((0, 128, 0), 5)
+                # self.border.change_color((255, 128, 0))
 
-                self.tank_ready_to_spawn = None
+                self.drop()
+
+                return
 
             if collidespritepoint(self.button_exit_market, event.pos):
-                self.player.spawn_tank_buff = self.tank_ready_to_spawn
-                if self.tank_ready_to_spawn is not None:
-                    self.scene.is_spawning_tank = True
-                self.scene.close_market()
-
-                # self.market_sprites.empty()
-                # self.all_selected_in_market.empty()
-                # self.all_taken_in_market.empty()
-                # self.taken_tank_menu = None
+                self.close()
+                return
+            for canvas in [self.panel_ttc, self.panel_menu]:
+                if collidespritepoint(canvas, event.pos):
+                    return
+            self.close()
                 
     def draw(self, screen):
         self.market_sprites.draw(screen)
         self.all_border_in_market.draw(screen)
+
+    def close(self):
+        self.player.spawn_tank_buff = self.tank_ready_to_spawn
+        if self.tank_ready_to_spawn is not None:
+            self.scene.is_spawning_tank = True
+        else:
+            self.scene.is_spawning_tank = False
+        self.scene.panel_for_spawn_tank.draw_tank(self.tank_ready_to_spawn)
+        self.scene.close_market()
+        
+    
+    def drop(self):
+        self.button_drop_confirm.edges((0, 255, 255), 5)
+        self.market_sprites.remove(self.all_border_in_market)
+        self.all_border_in_market.empty()
+        self.panel_ttc = uipanel.UIPanel(SW / 32, SH / 4, SW * 7 / 32, SH / 2, (255, 255, 255), 1,
+                                            (255, 128, 0), int(SW * 5 / 1280))
+        self.market_sprites.add(self.panel_ttc)
+        self.taken_tank_menu = None
+        self.tank_ready_to_spawn = None
 

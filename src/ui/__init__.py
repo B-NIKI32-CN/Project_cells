@@ -1,4 +1,16 @@
-from . import button, cell_border, damage_panel, img_tank, market, mist, uipanel, base_hp_bar, panel_resourses, panel_cnt_turns
+from . import (
+    button, 
+    cell_border, 
+    damage_panel, 
+    img_tank, 
+    market, 
+    mist, 
+    uipanel, 
+    base_hp_bar, 
+    panel_resourses, 
+    panel_cnt_turns, 
+    panel_for_spawn_tank,
+)
 
 __all__ = [
     "button",
@@ -11,4 +23,5 @@ __all__ = [
     "base_hp_bar",
     "panel_resourses",
     "panel_cnt_turns",
+    "panel_for_spawn_tank",
 ]

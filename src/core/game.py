@@ -15,7 +15,6 @@ class Game:
         self.scene.handle_events(pg.event.get())
         self.scene.update()
         self.scene.display(self.screen)
-        return True
 
     def stop(self):
         self._running = False
