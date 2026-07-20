@@ -157,7 +157,7 @@ while running:
             tank_menu.dirty = 2
             # tank_menu.edges((255,128,0), 5)
             market_window.add(tank_menu)
-            for j, tank_for_menu in enumerate(data.ttc.alpha):
+            for j, tank_for_menu in enumerate(data.ttc.default_combination):
                 x = j%3
                 y = j//3
                 market_ui_tanks.add(ui.img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,

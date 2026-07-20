@@ -7,8 +7,9 @@ from ..utils.functions import calclin, dist_linpoint, calclinspount, segment_col
 
 class Projectile(pg.sprite.DirtySprite):
     speed = projectile_speed
-    def __init__(self, x, y, angle, dam, pen, dist, team):
+    def __init__(self, x, y, angle, dam, pen, dist, team, id):
         pg.sprite.DirtySprite.__init__(self)
+        self.id = id
         self.visible = True
         self.dirty = 2
         self.layer = LAYER_PROJECTILES

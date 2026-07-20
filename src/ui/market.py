@@ -26,7 +26,7 @@ class Market():
         self.market_ui_tanks = pg.sprite.LayeredDirty()
         self.all_border_in_market = pg.sprite.LayeredDirty() # было all_selected_in_window
 
-        for j, tank_for_menu in enumerate(ttc.alpha):
+        for j, tank_for_menu in enumerate(ttc.default_combination):
                 x = j%3
                 y = j//3
                 tank_img = img_tank.ImgTank(SW / 2 - SW / 8 + x * SW / 8 - len_cell / 2,

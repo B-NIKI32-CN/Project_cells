@@ -7,12 +7,12 @@ class ImgTank(pg.sprite.DirtySprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team, orient, ttx):
+    def __init__(self, x, y, team, orient, ttc):
         pg.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.dirty = 2
         self.layer = LAYER_UI
-        self.ttx = ttx
+        self.ttc = ttc.copy()
         self.team = team
         self.orient = orient
         self.x = x
@@ -25,26 +25,26 @@ class ImgTank(pg.sprite.DirtySprite):
         self.image.fill(team_to_color[self.team])
         pg.draw.line(self.image, (0, 0, 0), (self.W-self.delta, self.delta),
                      (self.W-self.delta, self.H-self.delta), width=cell_width)
-        if self.ttx[-2] == 1:
+        if self.ttc["class"] == 1:
             pg.draw.circle(self.image, (0, 0, 0), (self.W / 2, self.H / 2), 5 * len_cell / 32)
-        if self.ttx[-2] == 2:
+        if self.ttc["class"] == 2:
             pg.draw.circle(self.image, (0, 0, 0), (self.W / 2, self.H / 2), len_cell / 4)
             pg.draw.circle(self.image, team_to_color[self.team], (self.W / 2, self.H / 2), len_cell / 8)
             pg.draw.rect(self.image, team_to_color[self.team], pg.Rect(0,0, self.W/2, self.H))
-        if self.ttx[-2] == 3:
+        if self.ttc["class"] == 3:
             pg.draw.line(self.image, (0, 0, 0),
                          (self.W/2, self.H/2), (self.W-self.delta, self.H/2), width=cell_width - 2)
             pg.draw.polygon(self.image, (0, 0, 0),
                             ((self.W-self.delta, self.H/2), (3/5*self.W, 2/5*self.H), (3/5*self.W, 3/5*self.H)))
-        if self.ttx[-1] == 1:
+        if self.ttc["stage"] == 1:
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 3/4*self.H),
                          (self.W/2, 3/4*self.H), width=cell_width - 2)
-        if self.ttx[-1] == 2:
+        if self.ttc["stage"] == 2:
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 11/16 * self.H),
                          (self.W / 2, 11/16 * self.H), width=cell_width - 2)
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 13/16 * self.H),
                          (self.W / 2, 13/16 * self.H), width=cell_width - 2)
-        if self.ttx[-1] == 3:
+        if self.ttc["stage"] == 3:
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 5/8 * self.H),
                          (self.W / 2, 5/8 * self.H), width=cell_width - 2)
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 3 / 4 * self.H),
@@ -52,25 +52,26 @@ class ImgTank(pg.sprite.DirtySprite):
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 7/8 * self.H),
                          (self.W / 2, 7/8 * self.H), width=cell_width - 2)
 
-        pg.draw.line(self.image, (0, 0, 0), (self.delta, 3/4*self.H - self.ttx[-1]/12*self.H),
-                     (self.delta, 3/4*self.H + self.ttx[-1]/12*self.H), width=cell_width - 2)
-        pg.draw.line(self.image, (0, 0, 0), (self.W/2, 3/4*self.H - self.ttx[-1]/12*self.H),
-                     (self.W/2, 3/4*self.H + self.ttx[-1]/12*self.H), width=cell_width - 2)
+        pg.draw.line(self.image, (0, 0, 0), (self.delta, 3/4*self.H - self.ttc["stage"]/12*self.H),
+                     (self.delta, 3/4*self.H + self.ttc["stage"]/12*self.H), width=cell_width - 2)
+        pg.draw.line(self.image, (0, 0, 0), (self.W/2, 3/4*self.H - self.ttc["stage"]/12*self.H),
+                     (self.W/2, 3/4*self.H + self.ttc["stage"]/12*self.H), width=cell_width - 2)
         self.imageOrig = self.image
 
-        self.vis = self.ttx[0]
-        self.hp = self.ttx[1]  # self.ttx[1]
-        self.a = [self.ttx[2], self.ttx[3], self.ttx[4]]
-        self.m = [self.ttx[5], 37, self.ttx[7]]  # self.ttx[5]
-        self.dam = self.ttx[8]
-        self.pen = self.ttx[9]
-        self.rel = self.ttx[10]
-        self.dist = self.ttx[11]
-        self.cost = self.ttx[12]
-        self.exp = self.ttx[13]
-        self.rel_dinamic = 0
+        self.id = self.ttc["id"]
+        self.viewing = self.ttc["viewing"]
+        self.health = self.ttc["health"]  # self.ttx[1]
+        self.armor = self.ttc["armor"]
+        self.mobility = self.ttc["mobility"]  # self.ttx[5]
+        self.damage = self.ttc["damage"]
+        self.penetration = self.ttc["penetration"]
+        self.cooldown = self.ttc["cooldown"]
+        self.distance = self.ttc["distance"]
+        self.resource = self.ttc["resource"]
+        self.exp = self.ttc["exp"]
+        self.reload_time_left = 0
 
-        text_cost = font16.render(f"{self.cost}", True, team_to_anticolor[self.team])
+        text_cost = font16.render(f"{self.resource}", True, team_to_anticolor[self.team])
         text_exp = font16.render(f"{self.exp}", True, team_to_anticolor[self.team])
 
         self.image.blit(text_cost, (self.W*0.1, self.H*0.1))

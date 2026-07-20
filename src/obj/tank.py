@@ -17,13 +17,14 @@ class Tank(pg.sprite.DirtySprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, pos, orient, ttc, player: Player, map):
+    def __init__(self, pos, orient, ttc, player: Player, map, id):
         pg.sprite.DirtySprite.__init__(self)
+        self.id = id
         self.visible = True
         self.dirty = 1
         self.layer = LAYER_OBJECTS
         self.misty = 0
-        self.ttc = ttc
+        self.ttc = ttc.copy()
         self.team = player.team
         # self.player = player
         player.tanks.add(self)
@@ -40,26 +41,26 @@ class Tank(pg.sprite.DirtySprite):
         self.image.fill(team_to_color[self.team])
         pg.draw.line(self.image, (0, 0, 0), (self.W-self.delta, self.delta),
                      (self.W-self.delta, self.H-self.delta), width=cell_width)
-        if self.ttc[-2] == 1:
+        if self.ttc["class"] == 1:
             pg.draw.circle(self.image, (0, 0, 0), (self.W / 2, self.H / 2), 5 * len_cell / 32)
-        if self.ttc[-2] == 2:
+        if self.ttc["class"] == 2:
             pg.draw.circle(self.image, (0, 0, 0), (self.W / 2, self.H / 2), len_cell / 4)
             pg.draw.circle(self.image, team_to_color[self.team], (self.W / 2, self.H / 2), len_cell / 8)
             pg.draw.rect(self.image, team_to_color[self.team], pg.Rect(0,0, self.W/2, self.H))
-        if self.ttc[-2] == 3:
+        if self.ttc["class"] == 3:
             pg.draw.line(self.image, (0, 0, 0),
                          (self.W/2, self.H/2), (self.W-self.delta, self.H/2), width=cell_width - 2)
             pg.draw.polygon(self.image, (0, 0, 0),
                             ((self.W-self.delta, self.H/2), (3/5*self.W, 2/5*self.H), (3/5*self.W, 3/5*self.H)))
-        if self.ttc[-1] == 1:
+        if self.ttc["stage"] == 1:
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 3/4*self.H),
                          (self.W/2, 3/4*self.H), width=cell_width - 2)
-        if self.ttc[-1] == 2:
+        if self.ttc["stage"] == 2:
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 11/16 * self.H),
                          (self.W / 2, 11/16 * self.H), width=cell_width - 2)
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 13/16 * self.H),
                          (self.W / 2, 13/16 * self.H), width=cell_width - 2)
-        if self.ttc[-1] == 3:
+        if self.ttc["stage"] == 3:
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 5/8 * self.H),
                          (self.W / 2, 5/8 * self.H), width=cell_width - 2)
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 3 / 4 * self.H),
@@ -67,10 +68,10 @@ class Tank(pg.sprite.DirtySprite):
             pg.draw.line(self.image, (0, 0, 0), (self.delta, 7/8 * self.H),
                          (self.W / 2, 7/8 * self.H), width=cell_width - 2)
 
-        pg.draw.line(self.image, (0, 0, 0), (self.delta, 3 / 4 * self.H - self.ttc[-1] / 12 * self.H),
-                     (self.delta, 3 / 4 * self.H + self.ttc[-1] / 12 * self.H), width=cell_width - 2)
-        pg.draw.line(self.image, (0, 0, 0), (self.W / 2, 3 / 4 * self.H - self.ttc[-1] / 12 * self.H),
-                     (self.W / 2, 3 / 4 * self.H + self.ttc[-1] / 12 * self.H), width=cell_width - 2)
+        pg.draw.line(self.image, (0, 0, 0), (self.delta, 3 / 4 * self.H - self.ttc["stage"] / 12 * self.H),
+                     (self.delta, 3 / 4 * self.H + self.ttc["stage"] / 12 * self.H), width=cell_width - 2)
+        pg.draw.line(self.image, (0, 0, 0), (self.W / 2, 3 / 4 * self.H - self.ttc["stage"] / 12 * self.H),
+                     (self.W / 2, 3 / 4 * self.H + self.ttc["stage"] / 12 * self.H), width=cell_width - 2)
         pg.draw.line(self.image, team_to_anticolor[self.team], (0, 0), (self.W, 0), width=cell_width)
         pg.draw.line(self.image, team_to_anticolor[self.team], (0 + self.W, 0), (self.W, self.H),
                      width=cell_width + 2)
@@ -81,21 +82,21 @@ class Tank(pg.sprite.DirtySprite):
         self.image_for_stats = self.image.copy()
 
 
-        self.vis = self.ttc[0]
-        self.hp = 100000  #self.ttx[1]
-        self.armor_list = [self.ttc[2], self.ttc[3], self.ttc[4]]
-        self.movement_balance_list = [1000, 37, self.ttc[7]] #self.ttx[5]
-        self.dam = self.ttc[8]
-        self.pen = self.ttc[9]
-        self.rel = 0#self.ttx[10]
-        self.dist = self.ttc[11]
-        self.cost = self.ttc[12]
-        self.exp = self.ttc[13]
-        self.rel_dinamic = 0
+        self.viewing = self.ttc["viewing"]
+        self.health = 100000  # self.ttx[1]
+        self.armor_list = self.ttc["armor"].copy()
+        self.movement_balance_list = [1000, 37, self.ttc["mobility"][2]] # self.ttx[5] 
+        self.damage = self.ttc["damage"]
+        self.penetration = self.ttc["penetration"]
+        self.cooldown = 0 # self.ttx[10]
+        self.distance = self.ttc["distance"]
+        self.resource = self.ttc["resource"]
+        self.exp = self.ttc["exp"]
+        self.reload_time_left = 0
 
-        radius2 = self.vis**2
-        i, j = np.indices((self.vis*2 + 1, self.vis*2 + 1))
-        dist_in2 = (self.vis - i)**2 + (self.vis - j)**2-1
+        radius2 = self.viewing**2
+        i, j = np.indices((self.viewing*2 + 1, self.viewing*2 + 1))
+        dist_in2 = (self.viewing - i)**2 + (self.viewing - j)**2-1
         pos = np.where(dist_in2 <= radius2)
         dist_in2[:,:] = 0
         dist_in2[pos] = 1
@@ -163,16 +164,16 @@ class Tank(pg.sprite.DirtySprite):
         self.drowed_stats = False
         return True
 
-    def shot(self, all_projectiles, all_sprites, m_m_pos, Projectile):
-        if self.rel_dinamic == 0:
+    def shot(self, all_projectiles, m_m_pos, Projectile, id):
+        if self.reload_time_left == 0:
             dx = m_m_pos[0] - self.rect.centerx
             dy = m_m_pos[1] - self.rect.centery
             angle = angle_vector(dx, dy)
-            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.dam, self.pen, (self.dist+0.5)*len_cell + 1, self.team)  # можно и self.H но они равны
+            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.damage, self.penetration, (self.distance+0.5)*len_cell + 1, self.team, id)  # можно и self.H но они равны
             all_projectiles.add(projectile)
-            all_sprites.add(projectile)
-            self.rel_dinamic = self.rel
-        self.drowed_stats = False
+            self.reload_time_left = self.cooldown
+            self.drowed_stats = False
+            return projectile
 
     def get_bullet(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):
         tl = [self.rect.left - bullet_pos[0], self.rect.top - bullet_pos[1]]
@@ -233,7 +234,7 @@ class Tank(pg.sprite.DirtySprite):
             self.dirty = 1
             self.image = self.image_for_stats.copy()
             if self.team == team:
-                reload_draw = font16.render(f"|{self.rel_dinamic}", True, color)
+                reload_draw = font16.render(f"|{self.reload_time_left}", True, color)
                 reload_draw.set_alpha(200)
                 self.image.blit(reload_draw, (self.W*0.7, self.delta / 2))
 
@@ -242,9 +243,9 @@ class Tank(pg.sprite.DirtySprite):
         self.drowed_stats = True
 
     def update(self):
-        self.movement_balance_list = [self.ttc[5], self.ttc[6], self.ttc[7]]
-        if self.rel_dinamic >= 1:
-            self.rel_dinamic -= 1
+        self.movement_balance_list = self.ttc["mobility"].copy()
+        if self.reload_time_left >= 1:
+            self.reload_time_left -= 1
 
     def change_misty(self, misty):
         if misty != self.misty:

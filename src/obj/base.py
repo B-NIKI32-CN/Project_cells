@@ -9,8 +9,9 @@ class Base(pg.sprite.DirtySprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, pos, player, tile_map):
+    def __init__(self, pos, player, tile_map, id):
         pg.sprite.DirtySprite.__init__(self)
+        self.id = id
         self.visible = True
         self.dirty = 1
         self.layer = LAYER_OBJECTS

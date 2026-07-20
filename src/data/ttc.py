@@ -22,16 +22,88 @@
 #  дальность            броня          подвижность           урон     кд          ресурс        класс
 #   обзора   hp     лоб  борт  корма  вперед поворот назад     пробитие дальность         опыт      этап
 #       0    1        2     3   4           5   6  7          8    9   10  11      12      13     14 15
-lt1a = 12,  500,      50,  40, 20,          8, 10, 0,         150,  30, 1,  6,     100,      0,    1,1
-lt2a = 15, 1000,     100,  80, 40,         12, 15, 0,         300,  60, 1,  6,     250,  80000,    1,2
-lt3a = 20, 2000,     200, 160, 80,         16, 20, 0,         600, 120, 1,  6,     600, 150000,    1,3
+# lt1a = 12,  500,      50,  40, 20,          8, 10, 0,         150,  30, 1,  6,     100,      0,    1,1
+# lt2a = 15, 1000,     100,  80, 40,         12, 15, 0,         300,  60, 1,  6,     250,  80000,    1,2
+# lt3a = 20, 2000,     200, 160, 80,         16, 20, 0,         600, 120, 1,  6,     600, 150000,    1,3
 
-tt1a = 6,  1000,     100,  50, 20,          4,  1, 1,         300,  50, 3,  6,     100,      0,    2,1
-tt2a = 6,  2500,     250, 120, 40,          4,  1, 1,         600, 100, 3,  6,     250,  80000,    2,2
-tt3a = 6,  6000,     600, 200, 40,          4,  1, 1,         800, 200, 2,  8,     600, 150000,    2,3
+# tt1a = 6,  1000,     100,  50, 20,          4,  1, 1,         300,  50, 3,  6,     100,      0,    2,1
+# tt2a = 6,  2500,     250, 120, 40,          4,  1, 1,         600, 100, 3,  6,     250,  80000,    2,2
+# tt3a = 6,  6000,     600, 200, 40,          4,  1, 1,         800, 200, 2,  8,     600, 150000,    2,3
 
-pt1a = 4,   500,      50,  20, 10,          4,  1, 0,         400, 100, 2, 15,     100,      0,    3,1
-pt2a = 4,  1000,     100,  40, 20,          4,  1, 0,         800, 250, 2, 20,     250,  80000,    3,2
-pt3a = 4,  2000,     200,  80, 40,          4,  1, 0,        3600, 300, 5, 30,     600, 150000,    3,3
+# pt1a = 4,   500,      50,  20, 10,          4,  1, 0,         400, 100, 2, 15,     100,      0,    3,1
+# pt2a = 4,  1000,     100,  40, 20,          4,  1, 0,         800, 250, 2, 20,     250,  80000,    3,2
+# pt3a = 4,  2000,     200,  80, 40,          4,  1, 0,        3600, 300, 5, 30,     600, 150000,    3,3
 
-alpha  = (lt1a, lt2a, lt3a, tt1a, tt2a, tt3a, pt1a, pt2a, pt3a)
+lt1a = {
+    "id": 1,
+    "viewing": 12, "health": 500,
+    "armor": [50, 40, 20], "mobility": [8, 10, 0],
+    "damage": 150, "penetration": 30, "cooldown": 1, "distance": 6,
+    "resource": 100, "exp": 0, "class": 1, "stage": 1,
+}
+
+lt2a = {
+    "id": 2,
+    "viewing": 15, "health": 1000,
+    "armor": [100, 80, 40], "mobility": [12, 15, 0],
+    "damage": 300, "penetration": 60, "cooldown": 1, "distance": 6,
+    "resource": 250, "exp": 80000, "class": 1, "stage": 2,
+}
+
+lt3a = {
+    "id": 3,
+    "viewing": 20, "health": 2000,
+    "armor": [200, 160, 80], "mobility": [16, 20, 0],
+    "damage": 600, "penetration": 120, "cooldown": 1, "distance": 6,
+    "resource": 600, "exp": 150000, "class": 1, "stage": 3,
+}
+
+tt1a = {
+    "id": 4,
+    "viewing": 6, "health": 1000,
+    "armor": [100, 50, 20], "mobility": [4, 1, 1],
+    "damage": 300, "penetration": 50, "cooldown": 3, "distance": 6,
+    "resource": 100, "exp": 0, "class": 2, "stage": 1,
+}
+
+tt2a = {
+    "id": 5,
+    "viewing": 6, "health": 2500,
+    "armor": [250, 120, 40], "mobility": [4, 1, 1],
+    "damage": 600, "penetration": 100, "cooldown": 3, "distance": 6,
+    "resource": 250, "exp": 80000, "class": 2, "stage": 2,
+}
+
+tt3a = {
+    "id": 6,
+    "viewing": 6, "health": 6000,
+    "armor": [600, 200, 40], "mobility": [4, 1, 1],
+    "damage": 800, "penetration": 200, "cooldown": 2, "distance": 8,
+    "resource": 600, "exp": 150000, "class": 2, "stage": 3,
+}
+
+pt1a = {
+    "id": 7,
+    "viewing": 4, "health": 500,
+    "armor": [50, 20, 10], "mobility": [4, 1, 0],
+    "damage": 400, "penetration": 100, "cooldown": 2, "distance": 15,
+    "resource": 100, "exp": 0, "class": 3, "stage": 1,
+}
+
+pt2a = {
+    "id": 8,
+    "viewing": 4, "health": 1000,
+    "armor": [100, 40, 20], "mobility": [4, 1, 0],
+    "damage": 800, "penetration": 250, "cooldown": 2, "distance": 20,
+    "resource": 250, "exp": 80000, "class": 3, "stage": 2,
+}
+
+pt3a = {
+    "id": 9,
+    "viewing": 4, "health": 2000,
+    "armor": [200, 80, 40], "mobility": [4, 1, 0],
+    "damage": 3600, "penetration": 300, "cooldown": 5, "distance": 30,
+    "resource": 600, "exp": 150000, "class": 3, "stage": 3,
+}
+
+default_combination = (lt1a, lt2a, lt3a, tt1a, tt2a, tt3a, pt1a, pt2a, pt3a)

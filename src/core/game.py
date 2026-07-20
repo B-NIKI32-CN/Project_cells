@@ -4,6 +4,7 @@ from .scene import Scene
 
 class Game:
     def __init__(self, screen, scene: type[Scene]):
+        self.onlinlocal_player_id = True
         self.screen = screen
         self._running = True
         self.set_scene(scene)
@@ -21,3 +22,4 @@ class Game:
 
     def is_running(self):
         return self._running
+    

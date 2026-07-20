@@ -2,39 +2,38 @@ import pygame as pg
 import numpy as np
 
 from ..core.scene import Scene
+from ..core.player import Player
 from .. import core, data, obj, ui, utils
 from ..core.settings import *
 from ..core.game import Game
 from ..utils.functions import collidespritepoint, get_cell_mouse_pos, get_world_mouse_pos
 
+# def spawn_base(place, player, tile_map):
+#     base = obj.base.Base(place, player, tile_map)
+#     player.mist_matrix[place[1], place[0]] = 1
+#     return base
 
+# def spawn_tank(place, player: Player, tile_map):
+#     if player.spawn_tank_buff is None:
+#         print("пиздос где имг танк этот")
+#         exit()
+#     if player.base is None:
+#         print("ну ахуеть и где база")
+#         exit()
+#     spawn_distance = ((int(player.base.x) / len_cell - place[0]) ** 2 + 
+#                     (int(player.base.y) / len_cell - place[1]) ** 2) ** 0.5
+#     if player.resources < player.spawn_tank_buff.resource or player.exp < player.spawn_tank_buff.exp:
+#         pass
+#     elif spawn_distance > max_spawn_distance:
+#         pass
+#     else:
 
-def spawn_base(place, player, tile_map):
-    base = obj.base.Base(place, player, tile_map)
-    player.mist_matrix[place[1], place[0]] = 1
-    return base
-
-def spawn_tank(place, player, tile_map):
-    if player.spawn_tank_buff is None:
-        print("пиздос где имг танк этот")
-        exit()
-    if player.base is None:
-        print("ну ахуеть и где база")
-        exit()
-    spawn_distance = ((int(player.base.x) / len_cell - place[0]) ** 2 + 
-                    (int(player.base.y) / len_cell - place[1]) ** 2) ** 0.5
-    if player.resources < player.spawn_tank_buff.ttx[12] or player.exp < player.spawn_tank_buff.ttx[13]:
-        pass
-    elif spawn_distance > max_spawn_distance:
-        pass
-    else:
-
-        tank = obj.tank.Tank(place, 1, player.spawn_tank_buff.ttx, player, tile_map)
-        player.resources -= player.spawn_tank_buff.ttx[-4]
-        player.spawn_tank_buff = None
-        return tank
+#         tank = obj.tank.Tank(place, 1, player.spawn_tank_buff.ttc, player, tile_map)
+#         player.resources -= player.spawn_tank_buff.resource
+#         player.spawn_tank_buff = None
+#         return tank
     
-    return None
+#     return None
 
 
 class GameScene(Scene):
@@ -44,12 +43,16 @@ class GameScene(Scene):
     def __init__(self, game: Game):
         super().__init__(game)
 
+        self.game_manager = core.game_manager.GameManager()
+
         # Игроки
         self.players: list[core.player.Player] = []
         for i in range(QNT_PLAYERS):
             self.players.append(core.player.Player(i, INITIAL_RESOURCES))
         self.cur_player_id = 0
         self.cur_player = self.players[self.cur_player_id]
+
+
         
         # Состояния
         self.curtain_is_raisen = False
@@ -65,12 +68,12 @@ class GameScene(Scene):
 
         # Группы
         self.all_world_sprites = pg.sprite.LayeredDirty(_time_threshold = float("inf")) #_time_threshold = float("inf")
-        self.all_walls = pg.sprite.LayeredDirty()
-        self.all_cells = pg.sprite.LayeredDirty()
-        self.all_bases = pg.sprite.LayeredDirty()
-        self.all_tanks = pg.sprite.LayeredDirty()
+        # self.all_walls = pg.sprite.LayeredDirty()
+        # self.all_cells = pg.sprite.LayeredDirty()
+        # self.all_bases = pg.sprite.LayeredDirty()
+        # self.all_tanks = pg.sprite.LayeredDirty()
         self.all_cell_borders = pg.sprite.LayeredDirty()
-        self.all_projectiles = pg.sprite.LayeredDirty()
+        # self.all_projectiles = pg.sprite.LayeredDirty()
         self.map_objs_matrix = np.empty((map_len_cells, map_len_cells), dtype=object)
         # self.all_buttons = pg.sprite.LayeredDirty()
         self.all_UI = pg.sprite.LayeredDirty()
@@ -84,7 +87,7 @@ class GameScene(Scene):
         self.market: ui.market.Market | None = None 
         self.selected_cell = None
         self.cnt_rounds = 0
-        self.active_player = 0
+        # self.cur_player_id = 0
 
         # UI экран
         self.panel_cnt_turns = ui.panel_cnt_turns.PanelResourses(SW*15/16 - SW*1/16, SH*13.5/16 - SH*1/32, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280),
@@ -98,14 +101,16 @@ class GameScene(Scene):
         # Генерация карты
         self.tile_map = data.maps.squares.tile_map.copy() # тайловая карта - по сетке
 
-        utils.functions.builder(self.tile_map, obj.cell.Cell, data.maps.ID_VOID, self.all_cells, self.all_world_sprites, self.map_objs_matrix)
-        utils.functions.builder(self.tile_map, obj.wall.Wall, data.maps.ID_WALL, self.all_walls, self.all_world_sprites, self.map_objs_matrix)
+        utils.functions.builder(self.tile_map, obj.cell.Cell, data.maps.ID_VOID, self.game_manager.all_cells, self.all_world_sprites, self.map_objs_matrix)
+        utils.functions.builder(self.tile_map, obj.wall.Wall, data.maps.ID_WALL, self.game_manager.all_walls, self.all_world_sprites, self.map_objs_matrix)
+
+        self.game_manager.get_tile_map(self.tile_map)
 
         virtual_screen_size = map_len_cells * len_cell
         self.map_screen = pg.Surface((virtual_screen_size, virtual_screen_size))
         self.background = self.map_screen.copy()
-        self.all_cells.draw(self.background, self.background)
-        self.all_walls.draw(self.background, self.background)
+        self.game_manager.all_cells.draw(self.background, self.background)
+        self.game_manager.all_walls.draw(self.background, self.background)
 
 
     def handle_events(self, all_events: list[pg.event.Event]):
@@ -140,7 +145,7 @@ class GameScene(Scene):
                     self.cell_border.goto(cell_mouse_pos)
                     
                     self.cur_player.selected_tank = None
-                    self.selected_cell = self.tile_map[cell_mouse_pos[1], cell_mouse_pos[0]]
+                    self.selected_cell = self.game_manager.tile_map[cell_mouse_pos[1], cell_mouse_pos[0]]
 
                     if self.selected_cell == data.maps.ID_TANK:
                         for tank in self.cur_player.tanks:
@@ -156,8 +161,7 @@ class GameScene(Scene):
                     elif self.selected_cell == data.maps.ID_VOID:
                         # Спавн базы
                         if self.is_spawning_base:
-                            base = spawn_base(self.cell_border.place, self.cur_player, self.tile_map)
-                            self.all_bases.add(base)
+                            base = self.game_manager.spawn_base(self.cell_border.place, self.cur_player)
                             self.all_world_sprites.add(base)
 
                             self.selected_cell = None
@@ -167,16 +171,16 @@ class GameScene(Scene):
                         
                         # Спавн танка
                         elif self.is_spawning_tank:
-                            tank = spawn_tank(self.cell_border.place, self.cur_player, self.tile_map)
+                            tank = self.game_manager.spawn_tank(self.cell_border.place, self.cur_player)
                             if tank is not None:
-                                self.all_tanks.add(tank)
                                 self.all_world_sprites.add(tank)
 
                                 self.cur_player.mist_matrix = utils.functions.mist_doting3000(self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, 
-                                                                                            self.all_tanks, self.all_bases, self.cur_player.team)
+                                                                                            self.game_manager.all_tanks, self.game_manager.all_bases, self.cur_player.team)
                                 
                                 self.selected_cell = None
                                 self.cell_border.visible = False
+
                                 self.is_spawning_tank = False
 
             # Изменения выбранной клетки
@@ -187,29 +191,29 @@ class GameScene(Scene):
                         pass
                     elif event.type == pg.KEYDOWN:
                         if event.key == pg.K_SPACE:
-                            self.cur_player.selected_tank.shot(self.all_projectiles, self.all_world_sprites, 
-                                                            get_world_mouse_pos(self.cur_player, pg.mouse.get_pos()), 
-                                                            obj.projectile.Projectile)
+                            projectile = self.game_manager.spawn_projectile(self.cur_player, get_world_mouse_pos(self.cur_player, pg.mouse.get_pos()))
+                            self.all_world_sprites.add(projectile)
+
                         elif event.key == pg.K_q:
                             self.tile_map[self.cur_player.selected_tank.place[1], self.cur_player.selected_tank.place[0]] = 0
                             self.cur_player.selected_tank.kill()
                             self.cur_player.selected_tank = None
                             self.cur_player.mist_matrix = utils.functions.mist_doting3000(self.cur_player.tanks,
-                                                                                    self.cur_player.base, self.map_objs_matrix, self.all_tanks,
-                                                                                    self.all_bases, self.cur_player.team)
+                                                                                    self.cur_player.base, self.map_objs_matrix, self.game_manager.all_tanks,
+                                                                                    self.game_manager.all_bases, self.cur_player.team)
                         else:
-                            self.cur_player.selected_tank.move(event.key)
+                            
+                            self.cur_player.selected_tank.move(event.key) 
                             self.cell_border.goto(self.cur_player.selected_tank.place)
                         
                             self.cur_player.mist_matrix = utils.functions.mist_doting3000(
-                                self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, self.all_tanks, self.all_bases, self.cur_player.team)
-
+                                self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, self.game_manager.all_tanks, self.game_manager.all_bases, self.cur_player.team)
 
     def update(self):
         
-        for tank in self.all_tanks:
+        for tank in self.game_manager.all_tanks:
             tank.draw_stats(self.cur_player.team)
-        for base in self.all_bases:
+        for base in self.game_manager.all_bases:
             base.draw_stats()
 
         self.panel_cnt_turns.update(self.cur_player, self)
@@ -219,8 +223,8 @@ class GameScene(Scene):
         if self.selected_cell in (None, data.maps.ID_VOID, data.maps.ID_WALL):
             self.cur_player.move(pg.key.get_pressed())
             
-        for projectile in self.all_projectiles:
-            damage = projectile.update(self.all_walls, self.all_tanks, self.cur_player.tanks, self.all_bases, self.map_objs_matrix)
+        for projectile in self.game_manager.all_projectiles:
+            damage = projectile.update(self.game_manager.all_walls, self.game_manager.all_tanks, self.cur_player.tanks, self.game_manager.all_bases, self.map_objs_matrix)
             if damage != 0:
                 damage_panel = ui.damage_panel.DamagePanel(projectile.x, projectile.y, SW/24,
                                             SH/32, (255, 255, 255), 1, (0,0,0), 4, DAMAGE_PANEL_TIMELIVE, damage, projectile.team)
@@ -279,10 +283,10 @@ class GameScene(Scene):
         for tank in self.cur_player.tanks:
             tank.drowed_stats = False
         
-        self.active_player = (self.active_player + 1) % QNT_PLAYERS
-        self.cur_player = self.players[self.active_player]
+        self.cur_player_id = (self.cur_player_id + 1) % QNT_PLAYERS
+        self.cur_player = self.players[self.cur_player_id]
         self.cur_player.mist_matrix = utils.functions.mist_doting3000(self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, 
-                                                                      self.all_tanks, self.all_bases, self.cur_player.team)
+                                                                      self.game_manager.all_tanks, self.game_manager.all_bases, self.cur_player.team)
         
 
         if self.cur_player.base is None:
