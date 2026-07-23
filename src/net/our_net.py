@@ -10,7 +10,7 @@ class SoftChannal:
         
         self.cooldown_recv = 0.1 # receive
         self.cooldown_send = 0.1
-        self.cooldown_conn = 1 # connect
+        self.cooldown_conn = 0.5 # connect
 
         self.last_recv = 0
         self.last_send = 0
@@ -71,7 +71,7 @@ class SoftChannal:
         if cur_time < self.last_conn + self.cooldown_conn:
             return False
         self.last_conn = cur_time
-        
+
         return self.hard_conn()
 
 
@@ -157,17 +157,45 @@ class SoftClient(SoftChannal):
 
         self.server_addr = server_addr
 
+        self.cooldown_conn_request = 1
+
         self.connecting = False
+        self.last_conn_request = 0
         
         # запуск
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setblocking(False)  # Делаем сокет неблокирующим
+
+    def reset_socket(self):
+        self.socket.close()
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setblocking(False)
 
     def new_connect(self): return super().new_connect()
 
     def close_connect(self, leave_socket_ind):
         self.socket.close()
         return super().close_connect(0)
+
+    def conn_request(self):
+        err = self.socket.connect_ex(self.server_addr)
+
+        if err == 0:
+            print("[CLIENT] Успешное подключение!")
+            self.connecting = False
+            self.new_connect()
+            return True
+
+        elif err in (115, 10035): # в процессе
+            print(f"[CLIENT] Попытка соединения с {self.server_addr}...")
+            self.connecting = True
+            return False
+
+        else:
+            print(f"[ERROR] Ошибка: {err}")
+            self.connecting = False
+            self.reset_socket()
+            return False
 
     def hard_send(self):
         if len(self.send_buff) == 0:
@@ -201,43 +229,38 @@ class SoftClient(SoftChannal):
     def hard_conn(self):
         if self.connections_cnt != 0:
             return True
-        
+
         if not self.connecting:
-            try:
-                self.connecting = True
-                self.socket.connect(self.server_addr)
-                self.new_connect()
-                self.connecting = False
-                print("[CLIENT] Успешное подключение!")
-                return True
-        
-            except BlockingIOError:
-                print("[CLIENT] Устанавливается соединение...")
-                return False
-        
-            except ConnectionRefusedError:
-                self.connecting = False
-                print("[ERROR] Сервер не запущен.")
-                return False
-            
-            except Exception as ex:
-                print(f"[ERROR] Ошибка: {ex}")
-                self.connecting = False
-                return False
-        
+
+            self.last_conn_request = time.time()
+            return self.conn_request()
+
         else:
+
             _, writable, _ = select.select([], [self.socket], [], 0)
             
             if writable:
                 err = self.socket.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
                 if err == 0:
+                    print("[CLIENT] Успешное подключение!")
                     self.new_connect()
                     self.connecting = False
-                    print("[CLIENT] Успешное подключение!")
                     return True
                 else:
                     print(f"[ERROR] Ошибка подключения: {err}")
                     self.connecting = False
+                    self.reset_socket()
                     return False
-            
-            return False
+
+            else:
+                cur_time = time.time()
+                if cur_time < self.last_conn_request + self.cooldown_conn_request:
+                    return False
+                self.last_conn_request = cur_time
+
+                print(f"[CLIENT] Таймаут! ({self.cooldown_conn_request}c)")
+                self.connecting = False
+                self.reset_socket()
+                self.conn_request()
+
+        return False

@@ -5,7 +5,7 @@ from .core.scene_manager import SceneManager
 from .scenes.main_menu_scene import MainMenuScene
 from .net.our_net import SoftServer, SoftClient
 
-# ("127.0.0.1", 1234) ("10.26.229.242", 1234)
+# ("127.0.0.1", 1234) ("10.26.229.242", 1234) ("10.26.229.165", 1234)
 server_addr = ("127.0.0.1", 1234)
 
 k = input("S/C:")

@@ -20,7 +20,7 @@ from ..ui.market import Market
 from ..ui.panel_for_spawn_tank import PanelForSpawnTank
 from ..ui.panel_resourses import PanelResourses
 from ..ui.panel_cnt_turns import PanelCntTurns
-from ..ui.uipanel import UIPanel
+from ..ui.button_turn_switch import ButtonTurnSwitch
 from ..utils.functions import collidespritepoint, get_cell_mouse_pos, get_world_mouse_pos, builder, mist_doting3000
 
 from ..net import signals_collector
@@ -35,9 +35,6 @@ class GameScene(Scene):
         pg.K_a: "left", 
         pg.K_d: "right"
     }
-
-    button_turn_switch = UIPanel(SW*15/16 - SW/16, SH*15/16 - SH/16, SW*1/8, SH*1/8, (0,255,255), 1, (255,128,0), 5)
-
     
     def __init__(self, scene_manager: SceneManager):
         super().__init__(scene_manager)
@@ -87,6 +84,8 @@ class GameScene(Scene):
                                                                   self.active_player)
         self.base_hp_bar = BaseHpBar(SW/64 - SW/64, SH/2 - SH/4, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280), self.active_player)
         self.panel_for_spawn_tank = PanelForSpawnTank(0, SH - len_cell*2,  len_cell*2, len_cell*2, (128,128,128), 1, (255,128,0), 5)
+        self.button_turn_switch = ButtonTurnSwitch(self)
+
         self.all_UI.add(self.button_turn_switch, self.panel_resources, self.panel_cnt_turns, self.base_hp_bar, self.panel_for_spawn_tank)
 
         # Генерация карты
@@ -237,14 +236,10 @@ class GameScene(Scene):
         for base in self.game_manager.all_bases:
             base.draw_stats()
 
-        # print()
-        # print(self.is_active_player_turn)
-        # print(self.active_player.team)
-        # print(self.game_manager.cur_player_id)
-
         self.panel_cnt_turns.update(self.active_player, self.game_manager.cur_player_id)
         self.panel_resources.update(self.active_player)
         self.base_hp_bar.update(self.active_player)
+        self.button_turn_switch.update()
         
         if self.selected_cell in (None, maps.ID_VOID, maps.ID_WALL):
             self.active_player.move(pg.key.get_pressed())
