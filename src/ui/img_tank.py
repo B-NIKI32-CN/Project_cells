@@ -7,9 +7,9 @@ class ImgTank(pg.sprite.DirtySprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, x, y, team, orient, ttc):
-        pg.sprite.DirtySprite.__init__(self)
-        self.visible = True
+    def __init__(self, x, y, team, orient, ttc, *groups):
+        super().__init__(*groups)
+        self.visible = 1
         self.dirty = 2
         self.layer = LAYER_UI
         self.ttc = ttc.copy()

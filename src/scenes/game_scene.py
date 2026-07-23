@@ -1,59 +1,57 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.scene_manager import SceneManager
+
+
 import pygame as pg
 import numpy as np
 
-from ..core.scene import Scene
-from ..core.player import Player
-from .. import core, data, obj, ui, utils
 from ..core.settings import *
-from ..core.game import Game
-from ..utils.functions import collidespritepoint, get_cell_mouse_pos, get_world_mouse_pos
+from ..data import maps
+from ..core.game_manager import GameManager
+from ..core.scene import Scene
+from ..obj.cell import Cell
+from ..obj.wall import Wall
+from ..ui.base_hp_bar import BaseHpBar
+from ..ui.cell_border import CellBorder
+from ..ui.damage_panel import DamagePanel
+from ..ui.market import Market
+from ..ui.panel_for_spawn_tank import PanelForSpawnTank
+from ..ui.panel_resourses import PanelResourses
+from ..ui.uipanel import UIPanel
+from ..utils.functions import collidespritepoint, get_cell_mouse_pos, get_world_mouse_pos, builder, mist_doting3000
 
-# def spawn_base(place, player, tile_map):
-#     base = obj.base.Base(place, player, tile_map)
-#     player.mist_matrix[place[1], place[0]] = 1
-#     return base
-
-# def spawn_tank(place, player: Player, tile_map):
-#     if player.spawn_tank_buff is None:
-#         print("пиздос где имг танк этот")
-#         exit()
-#     if player.base is None:
-#         print("ну ахуеть и где база")
-#         exit()
-#     spawn_distance = ((int(player.base.x) / len_cell - place[0]) ** 2 + 
-#                     (int(player.base.y) / len_cell - place[1]) ** 2) ** 0.5
-#     if player.resources < player.spawn_tank_buff.resource or player.exp < player.spawn_tank_buff.exp:
-#         pass
-#     elif spawn_distance > max_spawn_distance:
-#         pass
-#     else:
-
-#         tank = obj.tank.Tank(place, 1, player.spawn_tank_buff.ttc, player, tile_map)
-#         player.resources -= player.spawn_tank_buff.resource
-#         player.spawn_tank_buff = None
-#         return tank
-    
-#     return None
+from ..net import signals_collector
+from ..net.our_net import SoftServer
 
 
 class GameScene(Scene):
-
-    button_turn_switch = ui.uipanel.UIPanel(SW*15/16 - SW/16, SH*15/16 - SH/16, SW*1/8, SH*1/8, (0,255,255), 1, (255,128,0), 5)
     
-    def __init__(self, game: Game):
-        super().__init__(game)
+    tank_move_keys = {
+        pg.K_w: "forward", 
+        pg.K_s: "backward", 
+        pg.K_a: "left", 
+        pg.K_d: "right"
+    }
 
-        self.game_manager = core.game_manager.GameManager()
+    button_turn_switch = UIPanel(SW*15/16 - SW/16, SH*15/16 - SH/16, SW*1/8, SH*1/8, (0,255,255), 1, (255,128,0), 5)
 
-        # Игроки
-        self.players: list[core.player.Player] = []
-        for i in range(QNT_PLAYERS):
-            self.players.append(core.player.Player(i, INITIAL_RESOURCES))
-        self.cur_player_id = 0
-        self.cur_player = self.players[self.cur_player_id]
+    
+    def __init__(self, scene_manager: SceneManager):
+        super().__init__(scene_manager)
 
+        self.scene_manager = scene_manager
+        self.game_manager = GameManager()
 
+        # Игрок, который обрабатывается сценой
+        if self.scene_manager.net_module is not None:
+            self.active_player = self.game_manager.players[self.scene_manager.local_player_id]
+        else:
+            self.active_player = self.game_manager.cur_player
         
+        self.is_active_player_turn = (self.active_player.team == self.game_manager.cur_player_id)
+
         # Состояния
         self.curtain_is_raisen = False
 
@@ -61,21 +59,14 @@ class GameScene(Scene):
         self.is_spawning_tank = False
 
         # UI на карте
-        # self.damage_panel = None
-        self.cell_border = ui.cell_border.CellBorder(0,0)
-        self.cell_border.visible = False
+        self.cell_border = CellBorder(0,0)
+        self.cell_border.visible = 0
         
 
         # Группы
         self.all_world_sprites = pg.sprite.LayeredDirty(_time_threshold = float("inf")) #_time_threshold = float("inf")
-        # self.all_walls = pg.sprite.LayeredDirty()
-        # self.all_cells = pg.sprite.LayeredDirty()
-        # self.all_bases = pg.sprite.LayeredDirty()
-        # self.all_tanks = pg.sprite.LayeredDirty()
         self.all_cell_borders = pg.sprite.LayeredDirty()
-        # self.all_projectiles = pg.sprite.LayeredDirty()
         self.map_objs_matrix = np.empty((map_len_cells, map_len_cells), dtype=object)
-        # self.all_buttons = pg.sprite.LayeredDirty()
         self.all_UI = pg.sprite.LayeredDirty()
         self.all_damage_panels = pg.sprite.LayeredDirty()
 
@@ -84,27 +75,27 @@ class GameScene(Scene):
         self.all_world_sprites.add(self.cell_border)
         
         # Данные
-        self.market: ui.market.Market | None = None 
+        self.market: Market | None = None 
         self.selected_cell = None
         self.cnt_rounds = 0
         # self.cur_player_id = 0
 
         # UI экран
-        self.panel_cnt_turns = ui.panel_cnt_turns.PanelResourses(SW*15/16 - SW*1/16, SH*13.5/16 - SH*1/32, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280),
-                                                                 self.cur_player, self)
-        self.panel_resources = ui.panel_resourses.PanelResourses(SW/2 - SW*15/128, SH*3/80 - SH*8/160, SW*15/64, SH*8/80, (128,128,128), 1, color_select, int(SW*2/1280),
-                                                                  self.cur_player)
-        self.base_hp_bar =  ui.base_hp_bar.BaseHpBar(SW/64 - SW/64, SH/2 - SH/4, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280), self.cur_player)
-        self.panel_for_spawn_tank = ui.panel_for_spawn_tank.PanelForSpawnTank(0, SH*0.75, SW*0.25, SH*0.25, (128,128,128), 1, (255,128,0), 5)
+        self.panel_cnt_turns = PanelResourses(SW*15/16 - SW*1/16, SH*13.5/16 - SH*1/32, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280),
+                                                                 self.active_player)
+        self.panel_resources = PanelResourses(SW/2 - SW*15/128, SH*3/80 - SH*8/160, SW*15/64, SH*8/80, (128,128,128), 1, color_select, int(SW*2/1280),
+                                                                  self.active_player)
+        self.base_hp_bar = BaseHpBar(SW/64 - SW/64, SH/2 - SH/4, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280), self.active_player)
+        self.panel_for_spawn_tank = PanelForSpawnTank(0, SH - len_cell*2,  len_cell*2, len_cell*2, (128,128,128), 1, (255,128,0), 5)
         self.all_UI.add(self.button_turn_switch, self.panel_resources, self.panel_cnt_turns, self.base_hp_bar, self.panel_for_spawn_tank)
 
         # Генерация карты
-        self.tile_map = data.maps.squares.tile_map.copy() # тайловая карта - по сетке
+        self.tile_map = maps.squares.tile_map.copy() # тайловая карта - по сетке
 
-        utils.functions.builder(self.tile_map, obj.cell.Cell, data.maps.ID_VOID, self.game_manager.all_cells, self.all_world_sprites, self.map_objs_matrix)
-        utils.functions.builder(self.tile_map, obj.wall.Wall, data.maps.ID_WALL, self.game_manager.all_walls, self.all_world_sprites, self.map_objs_matrix)
+        builder(self.tile_map, Cell, maps.ID_VOID, self.game_manager.all_cells, self.all_world_sprites, self.map_objs_matrix)
+        builder(self.tile_map, Wall, maps.ID_WALL, self.game_manager.all_walls, self.all_world_sprites, self.map_objs_matrix)
 
-        self.game_manager.get_tile_map(self.tile_map)
+        self.game_manager.set_tile_map(self.tile_map)
 
         virtual_screen_size = map_len_cells * len_cell
         self.map_screen = pg.Surface((virtual_screen_size, virtual_screen_size))
@@ -114,14 +105,15 @@ class GameScene(Scene):
 
 
     def handle_events(self, all_events: list[pg.event.Event]):
+        
         for event in all_events:
             # Глобальные развилки
             if event.type == pg.QUIT:
-                self.game.stop()
+                self.scene_manager.stop()
 
             elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 from .main_menu_scene import MainMenuScene
-                self.game.set_scene(MainMenuScene)
+                self.scene_manager.set_scene(MainMenuScene)
 
             if self.market is not None:
                 self.market.handle_event(event)
@@ -135,105 +127,148 @@ class GameScene(Scene):
             # Нажатия мыши
             elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 # UI
-                if collidespritepoint(self.button_turn_switch, event.pos):
+                if collidespritepoint(self.button_turn_switch, event.pos) and self.is_active_player_turn:
                     if not self.is_spawning_base:
                         self.change_turn()
+                elif collidespritepoint(self.panel_for_spawn_tank, event.pos):
+                    self.panel_for_spawn_tank.draw_tank(None)
+                    self.active_player.spawn_tank_buff = None
+                    self.is_spawning_tank = False
                 
                 # Нажатия на клетки
                 else:
-                    cell_mouse_pos = get_cell_mouse_pos(self.cur_player, event.pos, len_cell)
+                    cell_mouse_pos = get_cell_mouse_pos(self.active_player, event.pos, len_cell)
                     self.cell_border.goto(cell_mouse_pos)
                     
-                    self.cur_player.selected_tank = None
+                    self.active_player.selected_tank = None
                     self.selected_cell = self.game_manager.tile_map[cell_mouse_pos[1], cell_mouse_pos[0]]
-
-                    if self.selected_cell == data.maps.ID_TANK:
-                        for tank in self.cur_player.tanks:
+            
+                    # нажатие на танк
+                    if self.selected_cell == maps.ID_TANK:
+                        for tank in self.active_player.tanks:
                             if tuple(tank.place) == cell_mouse_pos:
-                                self.cur_player.selected_tank = tank
+                                self.active_player.selected_tank = tank
                                 break
-
-                    elif self.selected_cell == data.maps.ID_BASE:
-                        if self.cur_player.base is not None:
-                            if tuple(self.cur_player.base.place) == cell_mouse_pos:
-                                self.market = ui.market.Market(self, self.cur_player)
                     
-                    elif self.selected_cell == data.maps.ID_VOID:
+                    # открытие магазина
+                    elif self.selected_cell == maps.ID_BASE:
+                        self.selected_cell = None
+                        self.cell_border.visible = 0
+                        if self.active_player.base is not None:
+                            if tuple(self.active_player.base.place) == cell_mouse_pos:
+                                self.market = Market(self, self.active_player)
+                    
+                    # нажатие на пустую клетку
+                    elif self.selected_cell == maps.ID_VOID and self.is_active_player_turn:
                         # Спавн базы
                         if self.is_spawning_base:
-                            base = self.game_manager.spawn_base(self.cell_border.place, self.cur_player)
+                            base = self.game_manager.spawn_base(self.cell_border.place)
                             self.all_world_sprites.add(base)
 
                             self.selected_cell = None
-                            self.cell_border.visible = False
+                            self.cell_border.visible = 0
 
                             self.is_spawning_base = False
+                            
+                            ### NET
+                            if self.scene_manager.net_module is not None:
+                                signal = signals_collector.spawn_base(tuple(base.place))
+                                self.scene_manager.net_module.add(signal)
                         
                         # Спавн танка
                         elif self.is_spawning_tank:
-                            tank = self.game_manager.spawn_tank(self.cell_border.place, self.cur_player)
+                            if self.active_player.spawn_tank_buff is None:
+                                print("блин где img_tank((")
+                                exit()
+                            tank = self.game_manager.spawn_tank(self.active_player.spawn_tank_buff.id, self.cell_border.place)
                             if tank is not None:
+                                self.panel_for_spawn_tank.draw_tank(None)
                                 self.all_world_sprites.add(tank)
+                                
 
-                                self.cur_player.mist_matrix = utils.functions.mist_doting3000(self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, 
-                                                                                            self.game_manager.all_tanks, self.game_manager.all_bases, self.cur_player.team)
+                                self.active_player.mist_matrix = mist_doting3000(self.active_player.tanks, self.active_player.base, self.map_objs_matrix, 
+                                                                                            self.game_manager.all_tanks, self.game_manager.all_bases, self.active_player.team)
                                 
                                 self.selected_cell = None
-                                self.cell_border.visible = False
+                                self.cell_border.visible = 0
 
                                 self.is_spawning_tank = False
+
+                                ### NET
+                                if self.scene_manager.net_module is not None:
+                                    signal = signals_collector.spawn_tank(tank.ttc["id"], tuple(tank.place))
+                                    self.scene_manager.net_module.add(signal)
 
             # Изменения выбранной клетки
             if self.selected_cell is not None:
                 # Управление танком
-                if self.selected_cell == data.maps.ID_TANK:
-                    if self.cur_player.selected_tank is None:
+                if self.selected_cell == maps.ID_TANK and self.is_active_player_turn:
+                    if self.active_player.selected_tank is None:
                         pass
                     elif event.type == pg.KEYDOWN:
                         if event.key == pg.K_SPACE:
-                            projectile = self.game_manager.spawn_projectile(self.cur_player, get_world_mouse_pos(self.cur_player, pg.mouse.get_pos()))
+                            world_mouse_pos = get_world_mouse_pos(self.active_player, pg.mouse.get_pos())
+                            projectile = self.game_manager.spawn_projectile(self.active_player.selected_tank.id, world_mouse_pos)
                             self.all_world_sprites.add(projectile)
-
-                        elif event.key == pg.K_q:
-                            self.tile_map[self.cur_player.selected_tank.place[1], self.cur_player.selected_tank.place[0]] = 0
-                            self.cur_player.selected_tank.kill()
-                            self.cur_player.selected_tank = None
-                            self.cur_player.mist_matrix = utils.functions.mist_doting3000(self.cur_player.tanks,
-                                                                                    self.cur_player.base, self.map_objs_matrix, self.game_manager.all_tanks,
-                                                                                    self.game_manager.all_bases, self.cur_player.team)
-                        else:
                             
-                            self.cur_player.selected_tank.move(event.key) 
-                            self.cell_border.goto(self.cur_player.selected_tank.place)
-                        
-                            self.cur_player.mist_matrix = utils.functions.mist_doting3000(
-                                self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, self.game_manager.all_tanks, self.game_manager.all_bases, self.cur_player.team)
+                            ### NET
+                            if self.scene_manager.net_module is not None:
+                                signal = signals_collector.spawn_projectile(self.active_player.selected_tank.id, world_mouse_pos)
+                                self.scene_manager.net_module.add(signal)
+
+                        else:
+                            direction = self.tank_move_keys[event.key]
+                            is_move = self.game_manager.move_tank(self.active_player.selected_tank.id, direction)
+
+                            self.cell_border.goto(self.active_player.selected_tank.place)
+                            self.active_player.mist_matrix = mist_doting3000(
+                                self.active_player.tanks, self.active_player.base, self.map_objs_matrix, self.game_manager.all_tanks, self.game_manager.all_bases, self.active_player.team)
+
+                            ### NET
+                            if self.scene_manager.net_module is not None:
+                                if is_move:
+                                    signal = signals_collector.tank_move(self.active_player.selected_tank.id, direction)
+                                    self.scene_manager.net_module.add(signal)
+
 
     def update(self):
         
         for tank in self.game_manager.all_tanks:
-            tank.draw_stats(self.cur_player.team)
+            tank.draw_stats(self.active_player.team)
         for base in self.game_manager.all_bases:
             base.draw_stats()
 
-        self.panel_cnt_turns.update(self.cur_player, self)
-        self.panel_resources.update(self.cur_player)
-        self.base_hp_bar.update(self.cur_player)
+        self.panel_cnt_turns.update(self.active_player)
+        self.panel_resources.update(self.active_player)
+        self.base_hp_bar.update(self.active_player)
         
-        if self.selected_cell in (None, data.maps.ID_VOID, data.maps.ID_WALL):
-            self.cur_player.move(pg.key.get_pressed())
+        if self.selected_cell in (None, maps.ID_VOID, maps.ID_WALL):
+            self.active_player.move(pg.key.get_pressed())
             
         for projectile in self.game_manager.all_projectiles:
-            damage = projectile.update(self.game_manager.all_walls, self.game_manager.all_tanks, self.cur_player.tanks, self.game_manager.all_bases, self.map_objs_matrix)
+            damage = projectile.update(self.game_manager.all_walls, self.game_manager.all_tanks, self.active_player.tanks, self.game_manager.all_bases, self.map_objs_matrix)
             if damage != 0:
-                damage_panel = ui.damage_panel.DamagePanel(projectile.x, projectile.y, SW/24,
+                damage_panel = DamagePanel(projectile.x, projectile.y, SW/24,
                                             SH/32, (255, 255, 255), 1, (0,0,0), 4, DAMAGE_PANEL_TIMELIVE, damage, projectile.team)
                 self.all_damage_panels.add(damage_panel)
                 self.all_world_sprites.add(damage_panel)
         self.all_damage_panels.update()
-        # self.all_world_sprites.update()
-                
-                
+
+        ### NET
+        if self.scene_manager.net_module is not None:
+            json_signals = self.scene_manager.net_module.soft_recv()
+            signals = [signals_collector.decode(json_signal) for json_signal in json_signals]
+
+            for signal in signals:
+                is_done = self.signal_processing(signal)
+                if not is_done:
+                    print(f"сигнал поганый: {signal}")
+                elif isinstance(self.scene_manager.net_module, SoftServer):
+                    self.scene_manager.net_module.add(signals_collector.encode(signal))
+
+            self.scene_manager.net_module.soft_send()
+
+
     def display(self, screen: pg.Surface):
         if self.curtain_is_raisen:
             screen.fill((66, 66, 66))
@@ -241,53 +276,109 @@ class GameScene(Scene):
         
         # Рисуется карта
         self.all_world_sprites.draw(self.map_screen, self.background)
-        # self.all_damage_panels.draw(self.map_screen, self.background)
 
-        dest = (-self.cur_player.cam_pos[0], -self.cur_player.cam_pos[1] )
+        dest = (-self.active_player.cam_pos[0], -self.active_player.cam_pos[1] )
         screen.fill((0,0,0))
         screen.blit(self.map_screen, dest)
 
         # UI
         self.all_UI.draw(screen)
 
-        # text_turns = font48.render(f"Turn: {self.cnt_rounds//QNT_PLAYERS + 1}", True, team_to_color[self.cur_player.team])
-        # text_resouces = font48.render(f"Resources : {self.cur_player.resources}", True, team_to_color[self.cur_player.team])
-        # text_exp = font48.render(f"Сapture : {self.cur_player.exp}", True, team_to_color[self.cur_player.team])
-        # screen.blit(text_turns, (SW*14/16 + SW*2/256, SH*14/16 - SW/32))
-        # screen.blit(text_resouces, (SW/2-SW*7/64, 0))
-        # screen.blit(text_exp, (SW/2-SW*7/64, SH*3/80))
-
         if self.market is not None:
             self.market.draw(screen)
+
 
     def close_market(self):
         self.market = None
 
+
     def change_turn(self):
-        if self.cnt_rounds >= QNT_PLAYERS:
-            self.cur_player.exp += utils.functions.cell_distribution(QNT_PLAYERS, self.cur_player.team, self.cur_player.tanks)
-            self.cur_player.resources += utils.functions.resources_profit(len(self.cur_player.tanks.sprites()))
-        self.cur_player.tanks.update()
         
         self.close_market()
         self.selected_cell = None
-        self.cell_border.visible = False
+        self.cell_border.visible = 0
         
         self.all_cell_borders.empty()
         self.all_world_sprites.remove(self.all_damage_panels)
         self.all_damage_panels.empty()
 
-        self.curtain_is_raisen = True
-        self.cnt_rounds += 1
+        if self.scene_manager.net_module is None:
+            self.curtain_is_raisen = True
     
-        for tank in self.cur_player.tanks:
+        for tank in self.active_player.tanks:
             tank.drowed_stats = False
         
-        self.cur_player_id = (self.cur_player_id + 1) % QNT_PLAYERS
-        self.cur_player = self.players[self.cur_player_id]
-        self.cur_player.mist_matrix = utils.functions.mist_doting3000(self.cur_player.tanks, self.cur_player.base, self.map_objs_matrix, 
-                                                                      self.game_manager.all_tanks, self.game_manager.all_bases, self.cur_player.team)
-        
+        self.game_manager.change_turn()
 
-        if self.cur_player.base is None:
+        self.active_player = self.game_manager.cur_player
+        self.cnt_rounds = self.game_manager.cnt_rounds
+
+        self.is_active_player_turn = (self.active_player.team == self.game_manager.cur_player_id)
+        
+        self.active_player.mist_matrix = mist_doting3000(self.active_player.tanks, self.active_player.base, self.map_objs_matrix, 
+                                                                      self.game_manager.all_tanks, self.game_manager.all_bases, self.active_player.team)
+
+        if self.active_player.base is None:
             self.is_spawning_base = True
+
+        ### NET
+        if self.scene_manager.net_module is not None:
+            signal = signals_collector.change_turn()
+            self.scene_manager.net_module.add(signal)
+
+    
+    ### NET
+    def signal_processing(self, signal: dict):
+        if "global" not in signal: return False
+        
+        if signal["global"] == "game":
+
+            if "namespase" not in signal: return False
+            if "command" not in signal: return False
+
+            if signal["namespase"] == "spawn":
+
+                if "args" not in signal: return False
+
+                if signal["command"] == "base":
+
+                    if "pos" not in signal["args"] or (len(signal["args"]["pos"]) != 2): return False
+                    if not self.is_active_player_turn:
+                        self.game_manager.spawn_base(signal["args"]["pos"])
+                    return True
+
+                if signal["command"] == "tank":
+
+                    if "pos" not in signal["args"] or (len(signal["args"]["pos"]) != 2): return False
+                    if "tank_type_id" not in signal["args"]: return False
+                    if not self.is_active_player_turn:
+                        self.game_manager.spawn_tank(signal["args"]["tank_type_id"], signal["args"]["pos"])
+                    return True
+
+                if signal["command"] == "projectile":
+
+                    if "direction" not in signal["args"] or (len(signal["args"]["direction"]) != 2): return False
+                    if "tank_id" not in signal["args"]: return False
+                    if not self.is_active_player_turn:
+                        self.game_manager.spawn_projectile(signal["args"]["tank_id"], signal["args"]["direction"])
+                    return True
+
+            if signal["namespase"] == "mutate":
+
+                if "args" not in signal: return False
+
+                if signal["command"] == "move":
+                    if "direction" not in signal["args"]: return False
+                    if "tank_id" not in signal["args"]: return False
+                    if not self.is_active_player_turn:
+                        self.game_manager.move_tank(signal["args"]["tank_id"], signal["args"]["direction"])
+                    return True
+                
+            if signal["namespase"] == "turn":
+
+                if signal["command"] == "change":
+                    if not self.is_active_player_turn:
+                        self.game_manager.change_turn()
+                    return True
+                
+        return False

@@ -1,10 +1,16 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..obj.base import Base
+    from ..obj.tank import Tank
+    from ..ui.img_tank import ImgTank
+
+
 import pygame as pg
 import numpy as np
 
-from ..obj.base import Base
-from ..obj.tank import Tank
-from ..ui.img_tank import ImgTank
 from .settings import *
+
 
 class Player:
     select = "player"
@@ -19,7 +25,7 @@ class Player:
         self.selected_tank: Tank | None = None
         self.hp = 1
         self.spawn_tank_buff: ImgTank | None = None
-        self.tanks = pg.sprite.LayeredDirty()
+        self.tanks: pg.sprite.LayeredDirty[Tank] = pg.sprite.LayeredDirty()
         self.mist_matrix = np.zeros((map_len_cells, map_len_cells), np.int64)
         
     def move(self, keys):

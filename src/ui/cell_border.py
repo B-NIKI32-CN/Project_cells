@@ -10,7 +10,7 @@ class CellBorder(pg.sprite.DirtySprite): # было Selectedcell
     def __init__(self, x, y):
         pg.sprite.DirtySprite.__init__(self)
         self.dirty = 1
-        self.visible = True
+        self.visible = 1
         self.layer = LAYER_SELECTION
         self.x = x
         self.y = y
@@ -34,7 +34,7 @@ class CellBorder(pg.sprite.DirtySprite): # было Selectedcell
         pg.draw.line(self.image, color, (0, self.H), (0, 0), width=self.width + 2)
 
     def goto(self, pos):
-        self.visible = True
+        self.visible = 1
         self.x = len_cell * pos[0]
         self.y = len_cell * pos[1]
         self.place = pos

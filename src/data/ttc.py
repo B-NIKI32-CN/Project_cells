@@ -107,3 +107,5 @@ pt3a = {
 }
 
 default_combination = (lt1a, lt2a, lt3a, tt1a, tt2a, tt3a, pt1a, pt2a, pt3a)
+
+tank_types: dict[int, dict] = {1: lt1a, 2: lt2a, 3: lt3a, 4: tt1a, 5: tt2a, 6: tt3a, 7: pt1a, 8: pt2a, 9: pt3a}

@@ -1,14 +1,16 @@
-import pygame as pg
+from pygame import init as pygame_init
+from pygame.font import Font
 
 a = 1
 # SW = screen.get_width()
 # SH = screen.get_height()
 
-pg.init()
-font48 = pg.font.Font(None, 48)
-font32 = pg.font.Font(None, 32)
-font24 = pg.font.Font(None, 24)
-font16 = pg.font.Font(None, 16)
+pygame_init()
+
+font48 = Font(None, 48)
+font32 = Font(None, 32)
+font24 = Font(None, 24)
+font16 = Font(None, 16)
 
 SW = a*1280 # теперь изменяемая, поэтому нужно сделать маленькими буквами
 SH = a*800 # теперь изменяемая, поэтому нужно сделать маленькими буквами

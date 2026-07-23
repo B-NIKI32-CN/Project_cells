@@ -4,7 +4,7 @@ import pygame as pg
 class Button(pg.sprite.DirtySprite):
     def __init__(self, x, y, W, H, color):
         pg.sprite.DirtySprite.__init__(self)
-        self.visible = True
+        self.visible = 1
         self.dirty = 1
         self.W = W
         self.H = H

@@ -1,16 +1,23 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.game_manager import GameManager
+
+
 import pygame as pg
-from math import sin, cos, pi, radians
+from math import sin, cos
 
 from ..core.settings import *
-from ..utils.functions import calclin, dist_linpoint, calclinspount, segment_collide
+from ..utils.functions import calclin, segment_collide
 
 
 class Projectile(pg.sprite.DirtySprite):
     speed = projectile_speed
-    def __init__(self, x, y, angle, dam, pen, dist, team, id):
+    def __init__(self, x, y, angle, dam, pen, dist, team, id, game_manager: GameManager):
         pg.sprite.DirtySprite.__init__(self)
+        self.game_manager = game_manager
         self.id = id
-        self.visible = True
+        self.visible = 1
         self.dirty = 2
         self.layer = LAYER_PROJECTILES
         self.team = team
@@ -67,29 +74,29 @@ class Projectile(pg.sprite.DirtySprite):
                 if team_tanks.has(t) == False:
                     # dist = dist_linpoint(t.rect.center, self.solve, self.equals)
                     if t.rect.collidepoint(self.rect.center):
-                        dam = t.get_bullet(self.angle, self.rect.center, self.dam, self.pen)
+                        dam = t.bullet_collide(self.angle, self.rect.center, self.dam, self.pen)
                         self.die = 1
                         return dam
                     sides = [t.rect.topleft, t.rect.topright, t.rect.bottomleft, t.rect.bottomright]
                     projectile_last_pos = self.x - self.dx * 0.5, self.y - self.dy * 0.5
                     top_point = segment_collide((self.x, self.y), projectile_last_pos, sides[0], sides[1])
                     if any(top_point):
-                        dam = t.get_bullet(self.angle, top_point, self.dam, self.pen)
+                        dam = t.bullet_collide(self.angle, top_point, self.dam, self.pen)
                         self.die = 1
                         return dam
                     right_point = segment_collide((self.x, self.y), projectile_last_pos, sides[1], sides[2])
                     if any(right_point):
-                        dam = t.get_bullet(self.angle, right_point, self.dam, self.pen)
+                        dam = t.bullet_collide(self.angle, right_point, self.dam, self.pen)
                         self.die = 1
                         return dam
                     bottom_point = segment_collide((self.x, self.y), projectile_last_pos, sides[2], sides[3])
                     if any(bottom_point):
-                        dam = t.get_bullet(self.angle, bottom_point, self.dam, self.pen)
+                        dam = t.bullet_collide(self.angle, bottom_point, self.dam, self.pen)
                         self.die = 1
                         return dam
                     left_point = segment_collide((self.x, self.y), projectile_last_pos, sides[3], sides[0])
                     if any(left_point):
-                        dam = t.get_bullet(self.angle, left_point, self.dam, self.pen)
+                        dam = t.bullet_collide(self.angle, left_point, self.dam, self.pen)
                         self.die = 1
                         return dam
                     
@@ -136,6 +143,7 @@ class Projectile(pg.sprite.DirtySprite):
 
     def update(self, all_walls, all_tanks, team_tanks, all_bases, map_matrix):
         if self.die == 1 or self.dist <= 0:
+            self.game_manager.delete_id(self.id)
             self.kill()
         self.x += self.dx*0.5
         self.y += self.dy*0.5

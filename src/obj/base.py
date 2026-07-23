@@ -1,4 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.game_manager import GameManager
+    
+
 import pygame as pg
+
 from ..core.settings import *
 from ..data.maps import ID_BASE
 
@@ -9,10 +16,11 @@ class Base(pg.sprite.DirtySprite):
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, pos, player, tile_map, id):
+    def __init__(self, pos, player, tile_map, id, game_manager: GameManager):
         pg.sprite.DirtySprite.__init__(self)
+        self.game_manager = game_manager
         self.id = id
-        self.visible = True
+        self.visible = 1
         self.dirty = 1
         self.layer = LAYER_OBJECTS
         self.misty = 0
@@ -52,6 +60,7 @@ class Base(pg.sprite.DirtySprite):
         self.hp -= damage
         self.player.hp = self.hp
         if self.hp <= 0:
+            self.game_manager.delete_id(self.id)
             self.kill()
             self.player.hp = 0
 
@@ -60,9 +69,9 @@ class Base(pg.sprite.DirtySprite):
             self.misty = misty
             self.dirty = 1
             if misty == 1:
-                self.visible = False
+                self.visible = 0
             else:
-                self.visible = True
+                self.visible = 1
     
     def draw_stats(self):
         if not self.drowed_stats:

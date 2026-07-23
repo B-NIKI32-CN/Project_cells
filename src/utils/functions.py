@@ -1,14 +1,15 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..core.player import Player
+    from ..obj.tank import Tank
 
-# import pygame as pg
+
 import numpy as np
 from math import sin, pi, atan
 
 from ..core.settings import *
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from ..core.player import Player
 
 def builder(map, obj, obj_ind, obj_group, all_sprites, obj_group_matrix):
     poses = np.where(map == obj_ind)
@@ -87,10 +88,10 @@ def mist_doting(A, group): # прибавляю к позициям матриц
         A[limites[1][0]:limites[1][1]+1, limites[0][0]:limites[0][1]+1] += dist_in2
     return A
     # подробно не описывал, все равно ты нумпай не будешь смотреть по-моему
-def mist_doting3000(tank_group, base, map_matrix, all_tanks, all_bases, team): # прибавляю к позициям матрицы A 1 которые видит танк (матрица A имеет размер карты)
+def mist_doting3000(tank_group: pg.sprite.LayeredDirty[Tank], base, map_matrix, all_tanks, all_bases, team): # прибавляю к позициям матрицы A 1 которые видит танк (матрица A имеет размер карты)
     A = np.zeros((map_len_cells, map_len_cells), np.int64)
     for tank in tank_group:
-        radius = tank.vis
+        radius = tank.viewing
         radius_in2 = radius**2
         center = tank.place
         start_x = 0

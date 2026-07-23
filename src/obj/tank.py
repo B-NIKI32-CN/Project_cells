@@ -1,40 +1,43 @@
 from __future__ import annotations
-
-import pygame as pg
-import numpy as np
-from math import sin, cos, pi, radians, atan
-
-from ..core.settings import *
-from ..utils.functions import angle_vector, damage
-from ..data.maps import ID_TANK
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..core.player import Player
+    from ..core.game_manager import GameManager
+
+
+import pygame as pg
+import numpy as np
+from math import sin, cos, pi
+
+
+from ..core.settings import *
+from ..data.maps import ID_TANK
+from ..utils.functions import angle_vector, damage
+
 
 class Tank(pg.sprite.DirtySprite):
     W = len_cell
     H = W
     size = (W, H)
     delta = 7
-    def __init__(self, pos, orient, ttc, player: Player, map, id):
-        pg.sprite.DirtySprite.__init__(self)
+    def __init__(self, id, pos, orient, ttc, player: Player, game_manager: GameManager, *groups):
+        super().__init__(*groups)
+        self.game_manager = game_manager
         self.id = id
-        self.visible = True
+        self.visible = 1
         self.dirty = 1
         self.layer = LAYER_OBJECTS
         self.misty = 0
         self.ttc = ttc.copy()
         self.team = player.team
-        # self.player = player
         player.tanks.add(self)
         self.orient = orient
-        self.map = map
+        self.tile_map = game_manager.tile_map
         self.drowed_stats = False
         self.place = list(pos)
         self.x = self.place[0] * self.W
         self.y = self.place[1] * self.H
-        self.map[self.place[1], self.place[0]] = ID_TANK
+        self.tile_map[self.place[1], self.place[0]] = ID_TANK
         self.image = pg.Surface(self.size, pg.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.center = self.x + self.W / 2, self.y + self.H / 2
@@ -83,9 +86,9 @@ class Tank(pg.sprite.DirtySprite):
 
 
         self.viewing = self.ttc["viewing"]
-        self.health = 100000  # self.ttx[1]
+        self.health = 100000  # self.ttc[health]
         self.armor_list = self.ttc["armor"].copy()
-        self.movement_balance_list = [1000, 37, self.ttc["mobility"][2]] # self.ttx[5] 
+        self.movement_balance_list = [1000, 37, self.ttc["mobility"][2]] # self.ttc["mobility"].copy()
         self.damage = self.ttc["damage"]
         self.penetration = self.ttc["penetration"]
         self.cooldown = 0 # self.ttx[10]
@@ -102,60 +105,60 @@ class Tank(pg.sprite.DirtySprite):
         dist_in2[pos] = 1
         self.mist_matrix = dist_in2
 
-    def move(self, key):
-        if key not in (pg.K_w, pg.K_a, pg.K_s, pg.K_d):
+    def move(self, direction):
+        if direction not in ("forward", "left", "backward", "right"):
             return False
 
         old_place = self.place.copy()
-        if key == pg.K_w:
+        if direction == "forward":
             if self.movement_balance_list[0] <= 0:
                 return False
-            elif self.orient == 0 and self.place[1] != 0 and self.map[self.place[1]-1, self.place[0]] == 0:
+            elif self.orient == 0 and self.place[1] != 0 and self.tile_map[self.place[1]-1, self.place[0]] == 0:
                 self.y -= self.H
                 self.place[1] -= 1
-            elif self.orient == 1 and self.place[0] != map_len_cells-1 and self.map[self.place[1], self.place[0] + 1] == 0:
+            elif self.orient == 1 and self.place[0] != map_len_cells-1 and self.tile_map[self.place[1], self.place[0] + 1] == 0:
                 self.x += self.W
                 self.place[0] += 1
-            elif self.orient == 2 and self.place[1] != map_len_cells-1 and self.map[self.place[1] + 1, self.place[0]] == 0:
+            elif self.orient == 2 and self.place[1] != map_len_cells-1 and self.tile_map[self.place[1] + 1, self.place[0]] == 0:
                 self.y += self.H
                 self.place[1] += 1
-            elif self.orient == 3 and self.place[0] != 0 and self.map[self.place[1], self.place[0]-1] == 0:
+            elif self.orient == 3 and self.place[0] != 0 and self.tile_map[self.place[1], self.place[0]-1] == 0:
                 self.x -= self.W
                 self.place[0] -= 1
             else:
                 return False
             self.movement_balance_list[0] -= 1
-        elif key == pg.K_a:
+        elif direction == "left":
             if self.movement_balance_list[1] <= 0:
                 return False
             self.orient = (self.orient - 1) % 4
             self.movement_balance_list[1] -= 1
-        elif key == pg.K_s:
+        elif direction == "backward":
             if self.movement_balance_list[2] <= 0:
                 return False
-            elif self.orient == 0 and self.place[1] != map_len_cells-1 and self.map[self.place[1] + 1, self.place[0]] == 0:
+            elif self.orient == 0 and self.place[1] != map_len_cells-1 and self.tile_map[self.place[1] + 1, self.place[0]] == 0:
                 self.y += self.H
                 self.place[1] += 1
-            elif self.orient == 1 and self.place[0] != 0 and self.map[self.place[1], self.place[0]-1] == 0:
+            elif self.orient == 1 and self.place[0] != 0 and self.tile_map[self.place[1], self.place[0]-1] == 0:
                 self.x -= self.W
                 self.place[0] -= 1
-            elif self.orient == 2 and self.place[1] != 0 and self.map[self.place[1]-1, self.place[0]] == 0:
+            elif self.orient == 2 and self.place[1] != 0 and self.tile_map[self.place[1]-1, self.place[0]] == 0:
                 self.y -= self.H
                 self.place[1] -= 1
-            elif self.orient == 3 and self.place[0] != map_len_cells-1 and self.map[self.place[1], self.place[0] + 1] == 0:
+            elif self.orient == 3 and self.place[0] != map_len_cells-1 and self.tile_map[self.place[1], self.place[0] + 1] == 0:
                 self.x += self.W
                 self.place[0] += 1
             else:
                 return False
             self.movement_balance_list[2] -= 1
-        elif key == pg.K_d:
+        elif direction == "right":
             if self.movement_balance_list[1] <= 0:
                 return False
             self.orient = (self.orient + 1) % 4
             self.movement_balance_list[1] -= 1
 
-        self.map[old_place[1], old_place[0]] = 0
-        self.map[self.place[1], self.place[0]] = 2
+        self.tile_map[old_place[1], old_place[0]] = 0
+        self.tile_map[self.place[1], self.place[0]] = 2
         self.image = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
         self.image_for_stats = pg.transform.rotate(pg.transform.scale(self.imageOrig, self.size), -90*(self.orient-1))
         self.rect = self.image.get_rect()
@@ -164,18 +167,22 @@ class Tank(pg.sprite.DirtySprite):
         self.drowed_stats = False
         return True
 
-    def shot(self, all_projectiles, m_m_pos, Projectile, id):
+
+    def shot(self, all_projectiles, m_m_pos, Projectile, id, game_manager):
         if self.reload_time_left == 0:
             dx = m_m_pos[0] - self.rect.centerx
             dy = m_m_pos[1] - self.rect.centery
             angle = angle_vector(dx, dy)
-            projectile = Projectile(self.rect.centerx, self.rect.centery, angle, self.damage, self.penetration, (self.distance+0.5)*len_cell + 1, self.team, id)  # можно и self.H но они равны
+            projectile = Projectile(self.rect.centerx, self.rect.centery, angle,
+                                     self.damage, self.penetration,
+                                       (self.distance+0.5)*len_cell + 1, self.team,
+                                         id, game_manager)  # можно и self.H но они равны
             all_projectiles.add(projectile)
             self.reload_time_left = self.cooldown
             self.drowed_stats = False
             return projectile
 
-    def get_bullet(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):
+    def bullet_collide(self, bullet_angle, bullet_pos, bullet_dam, bullet_pen):
         tl = [self.rect.left - bullet_pos[0], self.rect.top - bullet_pos[1]]
         tr = [self.rect.right - bullet_pos[0], self.rect.top - bullet_pos[1]]
         br = [self.rect.right - bullet_pos[0], self.rect.bottom - bullet_pos[1]]
@@ -217,10 +224,11 @@ class Tank(pg.sprite.DirtySprite):
         #       f" bl_angle: {180/pi*bl_angle}\n bullet_angle: {180/pi*bullet_angle}\n"
         #       f"rect_b: {self.rect.bottom}, bul_pos: {bullet_pos}\n\n")
         dam = damage(arm, bullet_pen, bullet_dam)
-        self.hp -= dam
-        if self.hp <= 0:
-            self.map[self.place[1], self.place[0]] = 0
+        self.health -= dam
+        if self.health <= 0:
+            self.tile_map[self.place[1], self.place[0]] = 0
             self.dirty = 1
+            self.game_manager.delete_id(self.id)
             self.kill()
         self.drowed_stats = False
 
@@ -229,7 +237,7 @@ class Tank(pg.sprite.DirtySprite):
     def draw_stats(self, team):
         if self.drowed_stats == False:
             color = team_to_anticolor[self.team]
-            hp_draw = font16.render(f"{int(self.hp)}", True, color)
+            hp_draw = font16.render(f"{int(self.health)}", True, color)
             hp_draw.set_alpha(200)
             self.dirty = 1
             self.image = self.image_for_stats.copy()
@@ -252,6 +260,10 @@ class Tank(pg.sprite.DirtySprite):
             self.misty = misty
             self.dirty = 1
             if misty == 1:
-                self.visible = False
+                self.visible = 0
             else:
-                self.visible = True
+                self.visible = 1
+
+    # def kill(self):
+    #     super().kill()
+    #     game_manager.delete_tank()

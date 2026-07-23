@@ -1,10 +1,15 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..ui.img_tank import ImgTank
+
+
 import pygame as pg
 
 from ..core.settings import *
 from ..utils.functions import collidespritepoint
 from ..data import ttc
 from ..ui import cell_border, img_tank, uipanel
-
 
 
 class Market():
@@ -23,7 +28,7 @@ class Market():
         self.taken_tank_menu = None
         self.tank_ready_to_spawn = None
         self.market_sprites = pg.sprite.LayeredDirty() # была market_window
-        self.market_ui_tanks = pg.sprite.LayeredDirty()
+        self.market_ui_tanks: pg.sprite.LayeredDirty[ImgTank] = pg.sprite.LayeredDirty() 
         self.all_border_in_market = pg.sprite.LayeredDirty() # было all_selected_in_window
 
         for j, tank_for_menu in enumerate(ttc.default_combination):
@@ -58,14 +63,14 @@ class Market():
 
                     text_ttc = (
                         font48.render(f"TTC:", True, (0, 0, 0)),
-                        font32.render(f"Distance of visible : {self.taken_tank_menu.ttx[0]}", True, (0, 0, 0)),
-                        font32.render(f"Healf points : {self.taken_tank_menu.ttx[1]}", True, (0, 0, 0)),
-                        font32.render(f"Armor: {self.taken_tank_menu.ttx[2]}, {self.taken_tank_menu.ttx[3]}, {self.taken_tank_menu.ttx[4]}", True, (0, 0, 0)),
-                        font32.render(f"Mobility: {self.taken_tank_menu.ttx[5]}, {self.taken_tank_menu.ttx[6]}, {self.taken_tank_menu.ttx[7]}", True, (0, 0, 0)),
-                        font32.render(f"Damage: {self.taken_tank_menu.ttx[8]}", True, (0, 0, 0)),
-                        font32.render(f"Penedration: {self.taken_tank_menu.ttx[9]}", True, (0, 0, 0)),
-                        font32.render(f"Reloading: {self.taken_tank_menu.ttx[10]}", True, (0, 0, 0)),
-                        font32.render(f"Fire distance: {self.taken_tank_menu.ttx[11]}", True, (0, 0, 0)),
+                        font32.render(f"Distance of visible : {self.taken_tank_menu.ttc["viewing"]}", True, (0, 0, 0)),
+                        font32.render(f"Healf points : {self.taken_tank_menu.ttc["health"]}", True, (0, 0, 0)),
+                        font32.render(f"Armor: {self.taken_tank_menu.ttc["armor"][0]}, {self.taken_tank_menu.ttc["armor"][1]}, {self.taken_tank_menu.ttc["armor"][2]}", True, (0, 0, 0)),
+                        font32.render(f"Mobility: {self.taken_tank_menu.ttc["mobility"][0]}, {self.taken_tank_menu.ttc["mobility"][1]}, {self.taken_tank_menu.ttc["mobility"][0]}", True, (0, 0, 0)),
+                        font32.render(f"Damage: {self.taken_tank_menu.ttc["damage"]}", True, (0, 0, 0)),
+                        font32.render(f"Penedration: {self.taken_tank_menu.ttc["penetration"]}", True, (0, 0, 0)),
+                        font32.render(f"Reloading: {self.taken_tank_menu.ttc["cooldown"]}", True, (0, 0, 0)),
+                        font32.render(f"Fire distance: {self.taken_tank_menu.ttc["distance"]}", True, (0, 0, 0)),
                     )
 
                     self.panel_ttc = uipanel.UIPanel(SW / 32, SH / 4, SW * 7 / 32, SH / 2, (255, 255, 255), 1,

@@ -30,7 +30,7 @@ class SoftChannal:
         self.connections_cnt -= 1
         self.recv_buffs.pop(leave_socket_ind)
 
-    def send_buff_add(self, json_string: str):
+    def add(self, json_string: str):
         self.send_buff.append(json_string)
     
     def soft_send(self):
@@ -41,7 +41,8 @@ class SoftChannal:
         if cur_time < self.last_send + self.cooldown_send:
             return
         self.last_send = cur_time
-        
+
+        print("[log][Channal] send_buff", self.send_buff)
         self.hard_send()
 
     def soft_recv(self) -> list[str]:
@@ -60,7 +61,9 @@ class SoftChannal:
                 self.recv_buffs[conn_id] = splited_recv[-1]
 
                 recv_lists += splited_recv[:-1]
-            
+
+            print("[log][Channal] recv_lists:", recv_lists)
+
         return recv_lists
     
     def soft_conn(self):
@@ -131,8 +134,7 @@ class SoftServer(SoftChannal):
                 self.close_connect(leave_socket_ind)
                 continue
 
-            message = raw_data.decode(self.code_format)
-            # message = raw_data.decode(self.code_format).strip()
+            message = raw_data.decode(self.code_format) # raw_data.decode(self.code_format).strip()
             client_ind = self.clients_list.index(notified_socket)
             self.recv_buffs[client_ind] += message
             received = True

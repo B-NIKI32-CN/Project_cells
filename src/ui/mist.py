@@ -11,7 +11,7 @@ class Mist(pg.sprite.DirtySprite): # класс тумана, чисто виз�
     size = (W, H)
     def __init__(self, x, y):
         pg.sprite.DirtySprite.__init__(self)
-        self.visible = True
+        self.visible = 1
         self.dirty = 1
         self.x = x
         self.y = y
