@@ -47,11 +47,14 @@ def start_game(map_id: int):
     return encode(data)
 
 # смена хода
-def change_turn():
+def change_turn(new_player_id: int):
     data = {
         "global": "game", 
         "namespase": "turn", 
-        "command": "change"
+        "command": "change",
+        "args": {
+            "new_player_id": new_player_id
+        }
     }
     return encode(data)
 

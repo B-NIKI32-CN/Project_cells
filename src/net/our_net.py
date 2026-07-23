@@ -77,10 +77,10 @@ class SoftChannal:
 
 
 class SoftServer(SoftChannal):
-    def __init__(self):
+    def __init__(self, server_addr=("127.0.0.1", 1234)):
         super().__init__()
      
-        self.server_addr = "127.0.0.1", 1234
+        self.server_addr = server_addr
 
         # запуск
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -118,6 +118,7 @@ class SoftServer(SoftChannal):
         self.send_buff.clear()
     
     def hard_recv(self):
+        if not self.clients_list: return False
         readable, _, _ = select.select(self.clients_list, [], [], 0)
         received = False
 
@@ -151,10 +152,10 @@ class SoftServer(SoftChannal):
         
 
 class SoftClient(SoftChannal):
-    def __init__(self):
+    def __init__(self, server_addr=("127.0.0.1", 1234)):
         super().__init__()
 
-        self.server_addr = "127.0.0.1", 1234
+        self.server_addr = server_addr
 
         self.connecting = False
         

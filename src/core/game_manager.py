@@ -34,50 +34,51 @@ class GameManager():
     def set_tile_map(self, tile_map):
         self.tile_map = tile_map
 
-    def spawn_base(self, place):
+    def spawn_base(self, place, all_world_sprites):
 
         base = Base(place, self.cur_player, self.tile_map, self.id_cnt, self)
         self.cur_player.mist_matrix[place[1], place[0]] = 1
         self.all_bases.add(base)
         self.id_dict[self.id_cnt] = base
         self.id_cnt += 1 
+        all_world_sprites.add(base)
         return base
 
-    def spawn_tank(self, tank_type_id, place):
+    def spawn_tank(self, tank_type_id, place, all_world_sprites):
 
-        if self.cur_player.spawn_tank_buff is None:
-            print("пиздос где имг танк этот")
-            exit()
         if self.cur_player.base is None:
             print("ну ахуеть и где база")
             exit()
+
+        ttc = tank_types[tank_type_id]
         spawn_distance = ((int(self.cur_player.base.x) / len_cell - place[0]) ** 2 + 
                         (int(self.cur_player.base.y) / len_cell - place[1]) ** 2) ** 0.5
-        if self.cur_player.resources < self.cur_player.spawn_tank_buff.resource or self.cur_player.exp < self.cur_player.spawn_tank_buff.exp:
+        if self.cur_player.resources < ttc["resource"] or self.cur_player.exp < ttc["exp"]:
             pass
         elif spawn_distance > max_spawn_distance:
             pass
         else:
 
-            ttc = tank_types[tank_type_id]
             
             tank = Tank(self.id_cnt, place, 1, ttc, self.cur_player, self)
-            self.cur_player.resources -= self.cur_player.spawn_tank_buff.resource
+            self.cur_player.resources -= ttc["resource"]
             self.cur_player.spawn_tank_buff = None
             self.all_tanks.add(tank)
             self.id_dict[self.id_cnt] = tank
             self.id_cnt += 1 
+            all_world_sprites.add(tank)
             return tank
         
         return None
 
-    def spawn_projectile(self, tank_id, world_mouse_pos):
+    def spawn_projectile(self, tank_id, world_mouse_pos, all_world_sprites):
 
         if not isinstance(self.id_dict[tank_id], Tank): return None
         projectile = self.id_dict[tank_id].shot(self.all_projectiles, world_mouse_pos, 
                                                 Projectile, self.id_cnt, self)
         self.id_dict[self.id_cnt] = projectile
         self.id_cnt += 1
+        all_world_sprites.add(projectile)
         return projectile
 
     def move_tank(self, tank_id, direction: str):
@@ -93,6 +94,9 @@ class GameManager():
             self.cur_player.resources += resources_profit(len(self.cur_player.tanks.sprites()))
         self.cnt_rounds += 1
         self.cur_player.tanks.update()
+        print()
+        print(self.cur_player_id)
         self.cur_player_id = (self.cur_player_id + 1) % QNT_PLAYERS
+        print(self.cur_player_id)
         self.cur_player = self.players[self.cur_player_id]
 
