@@ -1,7 +1,7 @@
 from pygame import init as pygame_init
 from pygame.font import Font
 
-a = 0.67
+a = 1
 # SW = screen.get_width()
 # SH = screen.get_height()
 

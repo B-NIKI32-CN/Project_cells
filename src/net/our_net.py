@@ -7,6 +7,8 @@ class SoftChannal:
     def __init__(self):
         self.code_format = "utf-8"
         self.connections_cnt = 0
+
+        self.debug = False
         
         self.cooldown_recv = 0.1 # receive
         self.cooldown_send = 0.1
@@ -73,7 +75,6 @@ class SoftChannal:
         self.last_conn = cur_time
 
         return self.hard_conn()
-
 
 
 class SoftServer(SoftChannal):

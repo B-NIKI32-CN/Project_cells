@@ -214,7 +214,7 @@ class GameScene(Scene):
                                 signal = signals_collector.spawn_projectile(self.active_player.selected_tank.id, world_mouse_pos)
                                 self.scene_manager.net_module.add(signal)
 
-                        else:
+                        elif event.key in self.tank_move_keys:
                             direction = self.tank_move_keys[event.key]
                             is_move = self.game_manager.move_tank(self.active_player.selected_tank.id, direction)
 

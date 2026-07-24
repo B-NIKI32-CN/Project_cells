@@ -10,10 +10,14 @@ from .scene import Scene
 
 
 class SceneManager:
-    def __init__(self, screen, scene: type[Scene], net_module: None | SoftServer | SoftClient = None):
+    def __init__(self, screen, scene: type[Scene], net_module: None | SoftServer | SoftClient = None, debug=False):
         
         self.net_module = net_module
         self.local_player_id = 0
+
+        self.debug = False
+        if self.net_module is not None:
+            self.net_module.debug = self.debug
 
         self.screen = screen
         self.running = True

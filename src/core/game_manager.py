@@ -94,9 +94,6 @@ class GameManager():
             self.cur_player.resources += resources_profit(len(self.cur_player.tanks.sprites()))
         self.cnt_rounds += 1
         self.cur_player.tanks.update()
-        print()
-        print(self.cur_player_id)
         self.cur_player_id = (self.cur_player_id + 1) % QNT_PLAYERS
-        print(self.cur_player_id)
         self.cur_player = self.players[self.cur_player_id]
 

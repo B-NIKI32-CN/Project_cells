@@ -218,11 +218,7 @@ class Tank(pg.sprite.DirtySprite):
             arm /= abs(sin(bullet_angle))
         else:
             arm /= abs(cos(bullet_angle))
-
-        # print(f"side: {side}, arm: {arm}\n tl_angle: {180/pi*tl_angle}\n"
-        #       f" tr_angle: {180/pi*tr_angle}\n br_angle: {180/pi*br_angle}\n"
-        #       f" bl_angle: {180/pi*bl_angle}\n bullet_angle: {180/pi*bullet_angle}\n"
-        #       f"rect_b: {self.rect.bottom}, bul_pos: {bullet_pos}\n\n")
+            
         dam = damage(arm, bullet_pen, bullet_dam)
         self.health -= dam
         if self.health <= 0:

@@ -78,7 +78,7 @@ class MainMenuScene(Scene):
                 for signal in signals:
                     is_done = self.signal_processing(signal)
                     if not is_done:
-                        print(f"сигнал поганый: {signal}")
+                        print(f"[WARNING] сигнал поганый: {signal}")
                     elif isinstance(self.scene_manager.net_module, SoftServer):
                         self.scene_manager.net_module.add(signals_collector.encode(signal))
 
@@ -137,7 +137,9 @@ class MainMenuScene(Scene):
                             self.player_ids.append(id)
                 if self.scene_manager.local_player_id == signal["args"]["old"]:
                     self.scene_manager.local_player_id = signal["args"]["new"]
-                print("[log] self.player_ids:", self.player_ids) # log
+                    
+                if self.scene_manager.debug:
+                    print("[log] player_ids:", self.player_ids)
                 return True
 
             if signal["command"] == "swap_id":
