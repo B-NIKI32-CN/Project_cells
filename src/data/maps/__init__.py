@@ -1,8 +1,9 @@
-from . import sandlot, squares
+from . import sandlot, squares, memorial
 
 __all__ = [
     "sandlot",
     "squares",
+    "memorial",
 ]
 
 ID_VOID = 0

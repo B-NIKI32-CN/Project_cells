@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 
 import numpy as np
-from math import sin, pi, atan
+from math import sin, pi, atan, log
 
 from ..core.settings import *
 
@@ -150,25 +150,43 @@ def cell_distribution(n, team, group): # функция присвоения к�
     exp = len(np.where(bool_matrix == 1)[0])
     return exp
 
+# def f1(x):
+#     return sin(pi*(x-0.5))/2 + 0.5
+# def f2(x):
+#     return (x-1)**2 + 1
+# def f3(x):
+#     return x - 0.25
+# def damage(a, p, d0):
+#     x = p/a
+#     if x <= 1:
+#         k = f1(x)
+#     elif x <= 1.5:
+#         k = f2(x)
+#     else:
+#         k = f3(x)
+#     d = k * d0
+#     return d
+
 def f1(x):
-    return sin(pi*(x-0.5))/2 + 0.5
+    return x**2
+
 def f2(x):
-    return (x-1)**2 + 1
-def f3(x):
-    return x - 0.25
+    return log(x) + 1
+
 def damage(a, p, d0):
     x = p/a
     if x <= 1:
         k = f1(x)
-    elif x <= 1.5:
-        k = f2(x)
     else:
-        k = f3(x)
-    d = k * d0
+        k = f2(x)
+    d = k*d0
     return d
 
 def resources_profit(tanks_cnt): # функция считающая сколько начислить ресурсов
-    res = (1-tanks_cnt/12) * 40
+    if tanks_cnt>8:
+        res = (1-(tanks_cnt-8)/12) * 40
+    else:
+        res = 40
     return int(res)
 
 def calclin(pount1, pount2):

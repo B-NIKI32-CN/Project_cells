@@ -91,7 +91,7 @@ class GameScene(Scene):
         self.all_UI.add(self.button_turn_switch, self.panel_resources, self.panel_cnt_turns, self.base_hp_bar, self.panel_for_spawn_tank)
 
         # Генерация карты
-        self.tile_map = maps.squares.tile_map.copy() # тайловая карта - по сетке
+        self.tile_map = maps.memorial.tile_map.copy() # тайловая карта - по сетке
 
         builder(self.tile_map, Cell, maps.ID_VOID, self.game_manager.all_cells, self.all_world_sprites, self.map_objs_matrix)
         builder(self.tile_map, Wall, maps.ID_WALL, self.game_manager.all_walls, self.all_world_sprites, self.map_objs_matrix)
