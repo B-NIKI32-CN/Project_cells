@@ -56,9 +56,11 @@ class GameScene(Scene):
         self.is_spawning_base = True
         self.is_spawning_tank = False
 
+        self.cam_is_blocked = False
+
         # UI на карте
         self.cell_border = CellBorder(0,0)
-        self.cell_border.visible = 0
+        self.close_select_cell()
         
 
         # Группы
@@ -136,6 +138,8 @@ class GameScene(Scene):
                 
                 # Нажатия на клетки
                 else:
+                    self.close_select_cell()
+
                     cell_mouse_pos = get_cell_mouse_pos(self.active_player, event.pos, len_cell)
                     self.cell_border.goto(cell_mouse_pos)
                     
@@ -147,15 +151,15 @@ class GameScene(Scene):
                         for tank in self.active_player.tanks:
                             if tuple(tank.place) == cell_mouse_pos:
                                 self.active_player.selected_tank = tank
+                                self.cam_is_blocked = True
                                 break
                     
                     # открытие магазина
                     elif self.selected_cell == maps.ID_BASE:
-                        self.selected_cell = None
-                        self.cell_border.visible = 0
                         if self.active_player.base is not None:
                             if tuple(self.active_player.base.place) == cell_mouse_pos:
                                 self.market = Market(self, self.active_player)
+                                self.close_select_cell()
                     
                     # нажатие на пустую клетку
                     elif self.selected_cell == maps.ID_VOID and self.is_active_player_turn:
@@ -163,8 +167,7 @@ class GameScene(Scene):
                         if self.is_spawning_base:
                             base = self.game_manager.spawn_base(self.cell_border.place, self.all_world_sprites)
 
-                            self.selected_cell = None
-                            self.cell_border.visible = 0
+                            self.close_select_cell()
 
                             self.is_spawning_base = False
                             
@@ -181,14 +184,11 @@ class GameScene(Scene):
                             tank = self.game_manager.spawn_tank(self.active_player.spawn_tank_buff.id, self.cell_border.place, self.all_world_sprites)
                             if tank is not None:
                                 self.panel_for_spawn_tank.draw_tank(None)
-                                
-                                
 
                                 self.active_player.mist_matrix = mist_doting3000(self.active_player.tanks, self.active_player.base, self.map_objs_matrix, 
                                                                                             self.game_manager.all_tanks, self.game_manager.all_bases, self.active_player.team)
                                 
-                                self.selected_cell = None
-                                self.cell_border.visible = 0
+                                self.close_select_cell()
 
                                 self.is_spawning_tank = False
 
@@ -241,7 +241,8 @@ class GameScene(Scene):
         self.base_hp_bar.update(self.active_player)
         self.button_turn_switch.update()
         
-        if self.selected_cell in (None, maps.ID_VOID, maps.ID_WALL):
+        # if self.selected_cell in (None, maps.ID_VOID, maps.ID_WALL):
+        if not self.cam_is_blocked:
             self.active_player.move(pg.key.get_pressed())
             
         for projectile in self.game_manager.all_projectiles:
@@ -287,15 +288,10 @@ class GameScene(Scene):
             self.market.draw(screen)
 
 
-    def close_market(self):
-        self.market = None
-
-
     def change_turn(self):
         
         self.close_market()
-        self.selected_cell = None
-        self.cell_border.visible = 0
+        self.close_select_cell()
         
         self.all_cell_borders.empty()
         self.all_world_sprites.remove(self.all_damage_panels)
@@ -400,3 +396,13 @@ class GameScene(Scene):
                     return True
                 
         return False
+
+
+    def close_market(self):
+        self.market = None
+
+
+    def close_select_cell(self):
+        self.selected_cell = None
+        self.cell_border.visible = 0
+        self.cam_is_blocked = False
