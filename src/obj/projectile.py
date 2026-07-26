@@ -8,7 +8,7 @@ import pygame as pg
 from math import sin, cos
 
 from ..core.settings import *
-from ..utils.functions import calclin, segment_collide
+from ..utils.functions import calclin, segment_collide, bullet_damage
 
 
 class Projectile(pg.sprite.DirtySprite):
@@ -41,6 +41,10 @@ class Projectile(pg.sprite.DirtySprite):
         self.solve, self.equals = calclin((self.x,self.y),(self.x + self.dx, self.y + self.dy))
         self.die = 0
         self.dmove = (self.dx**2 + self.dy**2)**0.5
+
+        self.max_dam = dam
+        self.max_dist = dist
+
 
     def proj_collide(self, all_walls, all_tanks, team_tanks, all_bases, map_matrix):
         wall = pg.sprite.spritecollide(self, all_walls, False)
@@ -137,15 +141,16 @@ class Projectile(pg.sprite.DirtySprite):
         return 0
 
     def update(self, all_walls, all_tanks, team_tanks, all_bases, map_matrix):
-        if self.die == 1 or self.dist <= 0:
+        if self.die == 1:
             self.game_manager.delete_id(self.id)
             self.kill()
         self.x += self.dx*0.5
         self.y += self.dy*0.5
         self.dist -= self.dmove*0.5
         if self.dist < 0:
-            self.x += self.dist/self.dmove * self.dx
-            self.y += self.dist/self.dmove * self.dy
+            self.dam = bullet_damage(self.max_dam, self.dist, self.max_dist)
+            # self.x += self.dist/self.dmove * self.dx
+            # self.y += self.dist/self.dmove * self.dy
         self.rect.center = (self.x, self.y)
         if self.die == 0:
             dam = self.proj_collide(all_walls, all_tanks, team_tanks, all_bases, map_matrix)

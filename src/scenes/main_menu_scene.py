@@ -14,7 +14,7 @@ from ..net import signals_collector
 from ..net.our_net import SoftServer, SoftClient
 
 
-class MainMenuScene(Scene):    
+class MainMenuScene(Scene):
 
     text_on_button = font48.render("Proceed", True, (0, 0, 0))
 
@@ -29,7 +29,9 @@ class MainMenuScene(Scene):
             else:
                 self.scene_manager.local_player_id = 0
 
-            self.player_ids = [self.scene_manager.local_player_id]
+            self.player_ids = set([self.scene_manager.local_player_id])
+
+            self.is_game_started = False
 
 
         self.background = pg.Surface((SW, SH))
@@ -52,12 +54,25 @@ class MainMenuScene(Scene):
                 if self.button_start_game.rect.collidepoint(event.pos):
                     
                     if self.scene_manager.net_module is not None:
-                        if self.scene_manager.net_module.connections_cnt == 0:
-                            print("[WARNING] Ещё не подключено!")
-                            continue
-                        elif min(self.player_ids) < 0:
-                            print("[WARNING] Остались необработаные игроки!")
-                            continue
+
+                        if isinstance(self.scene_manager.net_module, SoftServer):
+
+                            if len(self.player_ids) < self.scene_manager.max_qnt_players or min(self.player_ids) < 0:
+                                print(f"[WARNING] Остались необработаные игроки! (ids: {self.player_ids})")
+                                continue
+
+                            else:
+                                self.is_game_started = True
+
+                                signal = signals_collector.start_game(len(self.player_ids), self.scene_manager.cur_map_id)
+                                self.scene_manager.net_module.add(signal)
+
+                        elif isinstance(self.scene_manager.net_module, SoftClient):
+
+                            if not self.is_game_started:
+                                print("[WARNING] Хост ещё не начал игру!")
+                                continue
+                            
 
                     from .game_scene import GameScene
                     self.scene_manager.set_scene(GameScene)
@@ -67,40 +82,44 @@ class MainMenuScene(Scene):
     def update(self):
         ### NET
         if self.scene_manager.net_module is not None:
-            if self.scene_manager.net_module.connections_cnt == 0:
-                self.is_connected = self.scene_manager.net_module.soft_conn()
+                
+            json_signals = self.scene_manager.net_module.soft_recv()
+            signals = signals_collector.decode_list(json_signals)
 
-            else:
+            for signal in signals:
+                is_done = self.signal_processing(signal)
+                if not is_done:
+                    print(f"[WARNING] сигнал поганый: {signal}")
+                elif isinstance(self.scene_manager.net_module, SoftServer):
+                    self.scene_manager.net_module.add(signals_collector.encode(signal))
 
-                json_signals = self.scene_manager.net_module.soft_recv()
-                signals = [signals_collector.decode(json_signal) for json_signal in json_signals]
 
-                for signal in signals:
-                    is_done = self.signal_processing(signal)
-                    if not is_done:
-                        print(f"[WARNING] сигнал поганый: {signal}")
-                    elif isinstance(self.scene_manager.net_module, SoftServer):
-                        self.scene_manager.net_module.add(signals_collector.encode(signal))
+            if isinstance(self.scene_manager.net_module, SoftServer):
+                
+                if (self.scene_manager.net_module.connections_cnt + 1) < self.scene_manager.max_qnt_players:
+                    self.is_connected = self.scene_manager.net_module.soft_conn()
 
-                if isinstance(self.scene_manager.net_module, SoftServer):
+                for player_id in self.player_ids:
+                    if player_id < 0:
+                        self.player_ids.remove(player_id)
+                        new_id = max(self.player_ids) + 1
+                        self.player_ids.add(new_id)
 
-                    for player_id in self.player_ids:
-                        if player_id < 0:
-                            player_ind = self.player_ids.index(player_id)
-                            new_id = max(self.player_ids) + 1
-                            self.player_ids[player_ind] = new_id
-
-                            signal = signals_collector.change_id(player_id, new_id)
-                            self.scene_manager.net_module.add(signal)
-
-                elif isinstance(self.scene_manager.net_module, SoftClient):
-
-                    if not self.is_registration_request_send:
-                        signal = signals_collector.show_id(self.scene_manager.local_player_id)
+                        signal = signals_collector.change_id(player_id, new_id)
                         self.scene_manager.net_module.add(signal)
-                        self.is_registration_request_send = True
 
-                self.scene_manager.net_module.soft_send()
+
+            elif isinstance(self.scene_manager.net_module, SoftClient):
+
+                if self.scene_manager.net_module.connections_cnt == 0:
+                    self.is_connected = self.scene_manager.net_module.soft_conn()
+
+                elif not self.is_registration_request_send:
+                    signal = signals_collector.show_id(self.scene_manager.local_player_id)
+                    self.scene_manager.net_module.add(signal)
+                    self.is_registration_request_send = True
+
+            self.scene_manager.net_module.soft_send()
 
 
     def display(self, screen: pg.Surface):
@@ -119,8 +138,7 @@ class MainMenuScene(Scene):
             if signal["command"] == "show_id":
             
                 if "id" not in signal["args"]: return False
-                if signal["args"]["id"] not in self.player_ids:
-                    self.player_ids.append(signal["args"]["id"])
+                self.player_ids.add(signal["args"]["id"])
                 # if signal["args"]["id"] == self.scene_manager.local_player_id:
                     # self.is_registred = True
                 return True
@@ -129,12 +147,8 @@ class MainMenuScene(Scene):
 
                 if "old" not in signal["args"]: return False
                 if "new" not in signal["args"]: return False
-                if signal["args"]["old"] in self.player_ids:
-                    old_id_ind = self.player_ids.index(signal["args"]["old"])
-                    self.player_ids[old_id_ind] = signal["args"]["new"]
-                    for id in range(0, signal["args"]["new"]):
-                        if id not in self.player_ids: 
-                            self.player_ids.append(id)
+                self.player_ids.discard(signal["args"]["old"])
+                self.player_ids.add(signal["args"]["new"])
                 if self.scene_manager.local_player_id == signal["args"]["old"]:
                     self.scene_manager.local_player_id = signal["args"]["new"]
                     
@@ -151,5 +165,24 @@ class MainMenuScene(Scene):
                     new_id = signal["args"]["ids"][new_id_ind]
                     self.scene_manager.local_player_id = new_id
                 return True
+
+        if signal["global"] == "game":
+
+            if "namespase" not in signal: return False
+
+            if signal["namespase"] == "main":
+
+                if signal["command"] == "start":
+
+                    if "qnt_players" not in signal["args"]: return False
+                    if "map_id" not in signal["args"]: return False
+
+                    for id in range(signal["args"]["qnt_players"]):
+                        self.player_ids.add(id)
+                    self.scene_manager.cur_map_id = signal["args"]["map_id"]
+
+                    self.is_game_started = True
+                    return True
+
 
         return False

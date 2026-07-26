@@ -38,42 +38,57 @@ def input_server_addr():
     return addr
 
 
-# ("127.0.0.1", 1234) ("10.26.229.242", 1234) ("10.26.229.165", 1234)
-# server_addr = ("10.26.229.242", 1234)
+# 127.0.0.1:1234 10.26.229.242:1234 10.26.229.165:1234
+
+display_name = "tank game: "
+max_qnt_players = DEFAULT_MAX_QNT_PLAYERS
 
 k = input("(S)erver/(C)lient:")
 if k in ['s','S','ы','Ы']:
+
     server_addr = input_server_addr()
     net_module = SoftServer(server_addr)
     print(f"SERVER {server_addr}")
+
+    display_name += "SERVER"
+
+    max_qnt_players = int(input("Количество игроков в игре: "))
+
 elif k in ['c','C','с','С']:
+
     server_addr = input_server_addr()
     net_module = SoftClient(server_addr)
     print(f"Client (server: {server_addr})")
+
+    display_name += "Client"
+
 else:
+
     net_module = None
 
-
-display_name = "tank game: "
-if isinstance(net_module, SoftServer):
-    display_name += "SERVER"
-elif isinstance(net_module, SoftClient):
-    display_name += "Client"
-else:
     display_name += "offline"
 
 
 pg.init()
 
 screen = pg.display.set_mode((SW, SH), vsync=1) # pg.display.set_mode((SW, SH), pg.FULLSCREEN, vsync=1)
+
 pg.display.set_caption(display_name)
 
 clock = pg.time.Clock()
 
-scene_manager = SceneManager(screen, MainMenuScene, net_module, debug=False)
+
+scene_manager = SceneManager(MainMenuScene, net_module, debug=False)
+
+if isinstance(net_module, SoftServer):
+    scene_manager.max_qnt_players = max_qnt_players
+
 
 while scene_manager.is_running():
-    scene_manager.iteration()
+
+    scene_manager.handle_events(pg.event.get())
+    scene_manager.update()
+    scene_manager.display(screen)
 
     clock.tick(FPS)
     pg.display.flip()

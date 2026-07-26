@@ -257,7 +257,7 @@ class GameScene(Scene):
         ### NET
         if self.scene_manager.net_module is not None:
             json_signals = self.scene_manager.net_module.soft_recv()
-            signals = [signals_collector.decode(json_signal) for json_signal in json_signals]
+            signals = signals_collector.decode_list(json_signals)
 
             for signal in signals:
                 is_done = self.signal_processing(signal)

@@ -11,6 +11,6 @@ class PanelCntTurns(UIPanel):
 
     def update(self, player, cnt_rounds):
         self.image =  self.imageOrig.copy()
-        text_turns = font48.render(f"Turn: {cnt_rounds//QNT_PLAYERS + 1}", True, team_to_color[player.team])
+        text_turns = font48.render(f"Turn: {cnt_rounds//DEFAULT_MAX_QNT_PLAYERS + 1}", True, team_to_color[player.team])
         self.image.blit(text_turns, (self.width*2, self.width*2))
         

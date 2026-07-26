@@ -1,39 +1,50 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+    from pygame import Surface
+    from pygame.event import Event
     from ..net.our_net import SoftServer, SoftClient
+    from .scene import Scene
 
 
-import pygame as pg
-
-from .scene import Scene
+from ..core.settings import DEFAULT_MAX_QNT_PLAYERS
 
 
 class SceneManager:
-    def __init__(self, screen, scene: type[Scene], net_module: None | SoftServer | SoftClient = None, debug=False):
+    def __init__(self, scene: type[Scene], net_module: None | SoftServer | SoftClient = None, debug=False):
         
+        self.set_scene(scene)
+
         self.net_module = net_module
+
         self.local_player_id = 0
 
         self.debug = False
         if self.net_module is not None:
             self.net_module.debug = self.debug
 
-        self.screen = screen
         self.running = True
-        self.set_scene(scene)
+        self.max_qnt_players = DEFAULT_MAX_QNT_PLAYERS
+
+        self.cur_map_id = 0
+
+
+    def handle_events(self, events: list[Event]):
+        self.scene.handle_events(events)
+
+    def update(self):
+        self.scene.update()
+
+    def display(self, screen: Surface):
+        self.scene.display(screen)
+
 
     def set_scene(self, new_scene: type[Scene]):        
         self.scene = new_scene(self)
 
-    def iteration(self):
-        self.scene.handle_events(pg.event.get())
-        self.scene.update()
-        self.scene.display(self.screen)
-
-    def stop(self):
-        self.running = False
-
     def is_running(self):
         return self.running
+    
+    def stop(self):
+        self.running = False
     

@@ -182,6 +182,11 @@ def damage(a, p, d0):
     d = k*d0
     return d
 
+def bullet_damage(max_dam, dist, max_dist):
+    dam = max_dam * (max_dist / (abs(dist)*2 + max_dist))
+    return dam
+
+
 def resources_profit(tanks_cnt): # функция считающая сколько начислить ресурсов
     if tanks_cnt>8:
         res = (1-(tanks_cnt-8)/12) * 40

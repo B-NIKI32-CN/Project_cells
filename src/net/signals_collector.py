@@ -8,7 +8,9 @@ def show_id(id):
     data = {
         "global": "net", 
         "command": "show_id",
-        "args": {"id": id}
+        "args": {
+            "id": id
+        }
     }
     return encode(data)
 
@@ -35,12 +37,13 @@ def swap_id(pirst_id, second_id):
 
 
 # ИГРА
-def start_game(map_id: int):
+def start_game(qnt_players: int, map_id: int):
     data = {
         "global": "game",
         "namespase": "main",
         "command": "start",
         "args": {
+            "qnt_players": qnt_players,
             "map_id": map_id
         }
     }
@@ -115,7 +118,7 @@ def encode(data: dict):
     return json.dumps(data, ensure_ascii=False, separators=(',', ':')) # separators=(',', ':')
 
 def decode(json_string: str):
-    data = json.loads(json_string)
-    if isinstance(data, dict):
-        return data
-    return {}
+    return json.loads(json_string)
+
+def decode_list(json_strings: list[str]):
+    return [decode(json_string) for json_string in json_strings]

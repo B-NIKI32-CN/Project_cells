@@ -25,7 +25,7 @@ class GameManager():
         self.id_cnt = 0
 
         self.players: list[Player] = []
-        for i in range(QNT_PLAYERS):
+        for i in range(DEFAULT_MAX_QNT_PLAYERS):
             self.players.append(Player(i, INITIAL_RESOURCES))
         self.cur_player_id = 0
         self.cur_player = self.players[self.cur_player_id]
@@ -89,11 +89,11 @@ class GameManager():
         self.id_dict.pop(id)
 
     def change_turn(self):
-        if self.cnt_rounds >= QNT_PLAYERS:
-            self.cur_player.exp += cell_distribution(QNT_PLAYERS, self.cur_player.team, self.all_tanks)
+        if self.cnt_rounds >= DEFAULT_MAX_QNT_PLAYERS:
+            self.cur_player.exp += cell_distribution(DEFAULT_MAX_QNT_PLAYERS, self.cur_player.team, self.all_tanks)
             self.cur_player.resources += resources_profit(len(self.cur_player.tanks.sprites()))
         self.cnt_rounds += 1
         self.cur_player.tanks.update()
-        self.cur_player_id = (self.cur_player_id + 1) % QNT_PLAYERS
+        self.cur_player_id = (self.cur_player_id + 1) % DEFAULT_MAX_QNT_PLAYERS
         self.cur_player = self.players[self.cur_player_id]
 
