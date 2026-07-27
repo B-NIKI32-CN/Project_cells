@@ -230,7 +230,7 @@ class GameScene(Scene):
 
 
     def update(self):
-        
+        print(self.is_active_player_turn)
         for tank in self.game_manager.all_tanks:
             tank.draw_stats(self.active_player.team)
         for base in self.game_manager.all_bases:
@@ -311,8 +311,8 @@ class GameScene(Scene):
         self.active_player.mist_matrix = mist_doting3000(self.active_player.tanks, self.active_player.base, self.map_objs_matrix, 
                                                                       self.game_manager.all_tanks, self.game_manager.all_bases, self.active_player.team)
 
-        # if self.active_player.base is None:
-        #     self.is_spawning_base = True
+        if self.active_player.base is None:
+            self.is_spawning_base = True
 
         ### NET
         if self.scene_manager.net_module is not None:
@@ -396,7 +396,6 @@ class GameScene(Scene):
                     return True
                 
         return False
-
 
     def close_market(self):
         self.market = None
