@@ -97,15 +97,15 @@ class MainMenuScene(Scene):
             elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 if self.where == "first_menu":
                     self.scene_manager.stop()
-                if self.where == "manual" or self.where == "select_type_game":
+                elif self.where == "manual" or self.where == "select_type_game":
                     self.where = "first_menu"
                     self.all_buttons.empty()
                     self.all_buttons.add(self.button_start_game, self.button_manual)
 
-                if self.where == "select_online_role" or self.where == "offline":
+                elif self.where == "select_online_role" or self.where == "offline":
                     self.where = "select_type_game"
                     self.all_buttons.empty()
-                    self.all_buttons.add(self.button_server, self.button_client)
+                    self.all_buttons.add(self.button_online, self.button_offline)
                 
 
             elif event.type == pg.MOUSEBUTTONDOWN:
@@ -117,7 +117,6 @@ class MainMenuScene(Scene):
 
                     if collidespritepoint(self.button_start_game, event.pos):
                         self.where = "select_type_game"
-                        print("ni")
 
                         self.all_buttons.empty()
                         self.all_buttons.add(self.button_online, self.button_offline)
@@ -131,7 +130,6 @@ class MainMenuScene(Scene):
 
                     elif collidespritepoint(self.button_offline, event.pos):
                         self.where = "offline"
-                        print("offline")
                         qnt_players = int(input("Количество игроков в игре: "))
                         self.scene_manager.net_module = None
                         self.scene_manager.max_qnt_players = qnt_players

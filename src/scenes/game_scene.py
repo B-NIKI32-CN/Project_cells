@@ -230,7 +230,6 @@ class GameScene(Scene):
 
 
     def update(self):
-        print(self.is_active_player_turn)
         for tank in self.game_manager.all_tanks:
             tank.draw_stats(self.active_player.team)
         for base in self.game_manager.all_bases:

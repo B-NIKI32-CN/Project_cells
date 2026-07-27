@@ -4,7 +4,7 @@ from ..core.settings import *
 from ..ui.uipanel import UIPanel
 
 class ButtonClient(UIPanel):
-    x = SW/2 - SW/16 - SW*1/8
+    x = SW/2 - SW/16 + SW*1/8
     y = SH/2 - SH/16
     W = SW*1/8
     H = SH*1/8
