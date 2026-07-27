@@ -10,6 +10,12 @@ from . import (
     panel_resourses, 
     panel_cnt_turns, 
     panel_for_spawn_tank,
+    button_start_game,
+    button_manual,
+    button_offline,
+    button_online,
+    button_client,
+    button_server,
 )
 
 __all__ = [
@@ -24,4 +30,10 @@ __all__ = [
     "panel_resourses",
     "panel_cnt_turns",
     "panel_for_spawn_tank",
+    "button_start_game",
+    "button_manual",
+    "button_offline",
+    "button_online",
+    "button_client",
+    "button_server",
 ]

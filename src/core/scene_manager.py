@@ -7,13 +7,11 @@ if TYPE_CHECKING:
     from .scene import Scene
 
 
-from ..core.settings import DEFAULT_MAX_QNT_PLAYERS
+
 
 
 class SceneManager:
     def __init__(self, scene: type[Scene], net_module: None | SoftServer | SoftClient = None, debug=False):
-        
-        self.set_scene(scene)
 
         self.net_module = net_module
 
@@ -24,10 +22,11 @@ class SceneManager:
             self.net_module.debug = self.debug
 
         self.running = True
-        self.max_qnt_players = DEFAULT_MAX_QNT_PLAYERS
+        self.max_qnt_players = 0
 
         self.cur_map_id = 0
 
+        self.set_scene(scene)
 
     def handle_events(self, events: list[Event]):
         self.scene.handle_events(events)

@@ -40,7 +40,7 @@ class GameScene(Scene):
         super().__init__(scene_manager)
 
         self.scene_manager = scene_manager
-        self.game_manager = GameManager()
+        self.game_manager = GameManager(self.scene_manager.max_qnt_players)
 
         # Игрок, который обрабатывается сценой
         if self.scene_manager.net_module is not None:
@@ -81,7 +81,7 @@ class GameScene(Scene):
 
         # UI экран
         self.panel_cnt_turns = PanelCntTurns(SW*15/16 - SW*1/16, SH*13.5/16 - SH*1/32, SW*1/8, SH*1/16, (128,128,128), 1, (255,128,0), int(SW*5/1280),
-                                                                 self.active_player, self.game_manager.cur_player_id)
+                                                                 self.active_player, self.game_manager.cur_player_id, self.scene_manager.max_qnt_players)
         self.panel_resources = PanelResourses(SW/2 - SW*15/128, SH*3/80 - SH*8/160, SW*15/64, SH*8/80, (128,128,128), 1, color_select, int(SW*2/1280),
                                                                   self.active_player)
         self.base_hp_bar = BaseHpBar(SW/64 - SW/64, SH/2 - SH/4, SW/32, SH/2, (255,255,255), 1, (255,128,0), int(SW*5/1280), self.active_player)
@@ -236,7 +236,7 @@ class GameScene(Scene):
         for base in self.game_manager.all_bases:
             base.draw_stats()
 
-        self.panel_cnt_turns.update(self.active_player, self.game_manager.cur_player_id)
+        self.panel_cnt_turns.update(self.active_player, self.game_manager.cur_player_id, self.scene_manager.max_qnt_players)
         self.panel_resources.update(self.active_player)
         self.base_hp_bar.update(self.active_player)
         self.button_turn_switch.update()

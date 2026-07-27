@@ -7,16 +7,52 @@ if TYPE_CHECKING:
 import pygame as pg
 from random import randint
 
+
 from ..core.settings import *
 from ..core.scene import Scene
 from ..ui.uipanel import UIPanel
+from ..ui.button_manual import ButtonManual
+from ..ui.button_start_game import ButtonStartGame
+from ..ui.button_offline import ButtonOffline
+from ..ui.button_online import ButtonOnline
+from ..ui.button_server import ButtonServer
+from ..ui.button_client import ButtonClient
 from ..net import signals_collector
 from ..net.our_net import SoftServer, SoftClient
+from ..utils.functions import collidespritepoint
 
+def ip_addr_format(ip_addr_str: str):
+    try:
+        split_str = ip_addr_str.strip().split(':')
+        if len(split_str) != 2: return None
+
+        ip_str_nums = [num for num in split_str[0].split('.')]
+        if len(ip_str_nums) != 4: return None
+        for num_str in ip_str_nums:
+            if len(num_str) > 1 and num_str[0] == '0': return None
+            if not (num_str.isdigit() and (0 <= int(num_str) <= 255)): return None
+
+        port_str = split_str[1]
+        if len(port_str) > 1 and port_str[0] == '0': return None
+        if not port_str.isdigit(): return None
+        port = int(split_str[1])
+        if not (0 <= port <= 65535): return None
+
+        return (split_str[0], port)
+    
+    except:
+        return None
+
+def input_server_addr():
+    addr = None
+    while addr is None:
+        addr_str = input("Адресс сервера: ")
+        addr = ip_addr_format(addr_str)
+        if addr is None:
+            print("Ошибка ввода! Пример адресса: 127.0.0.1:1234")
+    return addr
 
 class MainMenuScene(Scene):
-
-    text_on_button = font48.render("Proceed", True, (0, 0, 0))
 
 
     def __init__(self, scene_manager: SceneManager):
@@ -31,52 +67,123 @@ class MainMenuScene(Scene):
 
             self.player_ids = set([self.scene_manager.local_player_id])
 
+            self.is_starting = False
             self.is_game_started = False
-
+            
 
         self.background = pg.Surface((SW, SH))
         self.background.fill((255,255,255))
-        self.button_start_game = UIPanel(SW/2 - SW/16, SH/2 - SH/16, SW/8, SH/8, (0,255,255), 1, (255,128,0), 5)
-        self.button_start_game.image.blit(self.text_on_button, (self.button_start_game.size[0]/16, self.button_start_game.size[1]/3))
+
+        # Кнопки
+        self.button_start_game = ButtonStartGame()
+        self.button_manual = ButtonManual()
+        self.button_online = ButtonOnline()
+        self.button_offline = ButtonOffline()
+        self.button_server = ButtonServer()
+        self.button_client = ButtonClient()
+
+        
         self.all_buttons = pg.sprite.LayeredDirty()
-        self.all_buttons.add(self.button_start_game)
+        self.all_buttons.add(self.button_start_game, self.button_manual)
+
+        self.where = "first_menu"
 
 
     def handle_events(self, all_events: list[pg.event.Event]):
         for event in all_events:
             if event.type == pg.QUIT:
                 self.scene_manager.stop()
-
+                
             elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                self.scene_manager.stop()
+                if self.where == "first_menu":
+                    self.scene_manager.stop()
+                if self.where == "manual" or self.where == "select_type_game":
+                    self.where = "first_menu"
+                    self.all_buttons.empty()
+                    self.all_buttons.add(self.button_start_game, self.button_manual)
+
+                if self.where == "select_online_role" or self.where == "offline":
+                    self.where = "select_type_game"
+                    self.all_buttons.empty()
+                    self.all_buttons.add(self.button_server, self.button_client)
+                
 
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if self.button_start_game.rect.collidepoint(event.pos):
-                    
-                    if self.scene_manager.net_module is not None:
+                if self.where == "first_menu":
+                    if collidespritepoint(self.button_manual, event.pos):
+                        self.where = "manual"
 
-                        if isinstance(self.scene_manager.net_module, SoftServer):
+                        self.all_buttons.empty()
 
-                            if len(self.player_ids) < self.scene_manager.max_qnt_players or min(self.player_ids) < 0:
-                                print(f"[WARNING] Остались необработаные игроки! (ids: {self.player_ids})")
-                                continue
+                    if collidespritepoint(self.button_start_game, event.pos):
+                        self.where = "select_type_game"
+                        print("ni")
 
-                            else:
-                                self.is_game_started = True
+                        self.all_buttons.empty()
+                        self.all_buttons.add(self.button_online, self.button_offline)
+                        
 
-                                signal = signals_collector.start_game(len(self.player_ids), self.scene_manager.cur_map_id)
-                                self.scene_manager.net_module.add(signal)
+                elif self.where == "select_type_game":
+                    if collidespritepoint(self.button_online, event.pos):
+                        self.where = "select_online_role"
+                        self.all_buttons.empty()
+                        self.all_buttons.add(self.button_server, self.button_client)
 
-                        elif isinstance(self.scene_manager.net_module, SoftClient):
+                    elif collidespritepoint(self.button_offline, event.pos):
+                        self.where = "offline"
+                        print("offline")
+                        qnt_players = int(input("Количество игроков в игре: "))
+                        self.scene_manager.net_module = None
+                        self.scene_manager.max_qnt_players = qnt_players
+
+                        from .game_scene import GameScene
+                        self.scene_manager.set_scene(GameScene)
+                        self.all_buttons.empty()
+                        
+                elif self.where == "select_online_role":
+
+                    if collidespritepoint(self.button_server, event.pos):
+                        if self.scene_manager.net_module is None:
+                            server_addr = input_server_addr()
+                            net_module = SoftServer(server_addr)
+                            print(f"SERVER {server_addr}")
+                            qnt_players = int(input("Количество игроков в игре: "))
+                            self.scene_manager.net_module = net_module
+                            self.scene_manager.max_qnt_players = qnt_players
+
+                        if len(self.player_ids) < self.scene_manager.max_qnt_players or min(self.player_ids) < 0:
+                            print(f"[WARNING] Остались необработаные игроки! (ids: {self.player_ids})")
+                            continue
+
+                        else:
+                            self.is_game_started = True
+
+                            signal = signals_collector.start_game(len(self.player_ids), self.scene_manager.cur_map_id)
+                            self.scene_manager.net_module.add(signal)
+
+                        from .game_scene import GameScene
+                        self.scene_manager.set_scene(GameScene)
+                        self.all_buttons.empty()
+
+
+                        if collidespritepoint(self.button_client, event.pos):
+                            if self.scene_manager.net_module is None:
+                                server_addr = input_server_addr()
+                                net_module = SoftClient(server_addr)
+                                print(f"Client (server: {server_addr})")
+                                self.scene_manager.net_module = net_module
 
                             if not self.is_game_started:
                                 print("[WARNING] Хост ещё не начал игру!")
                                 continue
-                            
 
-                    from .game_scene import GameScene
-                    self.scene_manager.set_scene(GameScene)
-                    self.all_buttons.empty()
+                            from .game_scene import GameScene
+                            self.scene_manager.set_scene(GameScene)
+                            self.all_buttons.empty()
+                    
+
+                    
+
 
 
     def update(self):
@@ -186,3 +293,5 @@ class MainMenuScene(Scene):
 
 
         return False
+
+

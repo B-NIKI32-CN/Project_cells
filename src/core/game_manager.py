@@ -11,7 +11,7 @@ from ..utils.functions import cell_distribution, resources_profit
 
 class GameManager():
     
-    def __init__(self):
+    def __init__(self, qnt_players):
 
         self.all_walls = pg.sprite.LayeredDirty()
         self.all_cells = pg.sprite.LayeredDirty()
@@ -19,13 +19,14 @@ class GameManager():
         self.all_tanks = pg.sprite.LayeredDirty()
         self.all_projectiles = pg.sprite.LayeredDirty()
         self.cnt_rounds = 0
+        self.qnt_players = qnt_players
         
 
         self.id_dict = {}
         self.id_cnt = 0
 
         self.players: list[Player] = []
-        for i in range(DEFAULT_MAX_QNT_PLAYERS):
+        for i in range(self.qnt_players):
             self.players.append(Player(i, INITIAL_RESOURCES))
         self.cur_player_id = 0
         self.cur_player = self.players[self.cur_player_id]
@@ -89,11 +90,11 @@ class GameManager():
         self.id_dict.pop(id)
 
     def change_turn(self):
-        if self.cnt_rounds >= DEFAULT_MAX_QNT_PLAYERS:
-            self.cur_player.exp += cell_distribution(DEFAULT_MAX_QNT_PLAYERS, self.cur_player.team, self.all_tanks)
+        if self.cnt_rounds >= self.qnt_players:
+            self.cur_player.exp += cell_distribution(self.qnt_players, self.cur_player.team, self.all_tanks)
             self.cur_player.resources += resources_profit(len(self.cur_player.tanks.sprites()))
         self.cnt_rounds += 1
         self.cur_player.tanks.update()
-        self.cur_player_id = (self.cur_player_id + 1) % DEFAULT_MAX_QNT_PLAYERS
+        self.cur_player_id = (self.cur_player_id + 1) % self.qnt_players
         self.cur_player = self.players[self.cur_player_id]
 
